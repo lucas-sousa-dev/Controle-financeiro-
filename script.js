@@ -204,8 +204,6 @@ function renderCategories(list) {
 // HISTÓRICO MENSAL
 
 function renderHistory() {
-
-function renderHistory() {
   const root = $("historico");
   root.replaceChildren();
 
@@ -281,10 +279,9 @@ function renderHistory() {
       });
     });
 
-    root.append(btn);
+        root.append(btn);
   });
 }
-
 
 // LISTA DE MOVIMENTAÇÕES
 
