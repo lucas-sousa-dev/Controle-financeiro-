@@ -64,6 +64,136 @@
       </article>
     </section>
 
+    
+    <!-- AGENDA FINANCEIRA -->
+
+    <section class="card" id="agenda-financeira">
+      <div class="section-title">
+        <div>
+          <h2>Agenda Financeira</h2>
+          <p>Organize contas, parcelas e vencimentos futuros.</p>
+        </div>
+
+        <label>Visualizar mês
+          <input id="agenda-mes" type="month">
+        </label>
+      </div>
+
+      <div class="agenda-resumo">
+        <div class="agenda-resumo-item">
+          <small>Total previsto</small>
+          <strong id="agenda-previsto">R$ 0,00</strong>
+        </div>
+
+        <div class="agenda-resumo-item">
+          <small>Total pago</small>
+          <strong id="agenda-pago">R$ 0,00</strong>
+        </div>
+
+        <div class="agenda-resumo-item">
+          <small>Total pendente</small>
+          <strong id="agenda-pendente">R$ 0,00</strong>
+        </div>
+      </div>
+
+      <h2 id="agenda-form-title">Nova provisão</h2>
+
+      <form id="agenda-form">
+        <label>Descrição da conta
+          <input
+            id="agenda-descricao"
+            maxlength="100"
+            required
+            placeholder="Ex.: Geladeira, aluguel, internet">
+        </label>
+
+        <div class="two">
+          <label>Valor (R$)
+            <input
+              id="agenda-valor"
+              type="number"
+              min="0.01"
+              step="0.01"
+              required
+              placeholder="0,00">
+          </label>
+
+          <label>Primeiro vencimento
+            <input
+              id="agenda-vencimento"
+              type="date"
+              required>
+          </label>
+        </div>
+
+        <div class="two">
+          <label>Categoria
+            <select id="agenda-categoria">
+              <option>Alimentação</option>
+              <option>Moradia</option>
+              <option>Transporte</option>
+              <option>Saúde</option>
+              <option>Impostos</option>
+              <option>Outros</option>
+            </select>
+          </label>
+
+          <label>Modalidade
+            <select id="agenda-tipo">
+              <option value="unica">Conta única</option>
+              <option value="parcelada">Compra parcelada</option>
+              <option value="recorrente">Conta recorrente</option>
+            </select>
+          </label>
+        </div>
+
+        <label id="agenda-quantidade-label" class="hidden">
+          Quantidade de parcelas ou meses
+          <input
+            id="agenda-quantidade"
+            type="number"
+            min="1"
+            max="120"
+            value="1">
+        </label>
+
+        <div class="actions">
+          <button id="agenda-save" type="submit">
+            Cadastrar provisão
+          </button>
+
+          <button
+            id="agenda-cancel"
+            type="button"
+            class="outline hidden">
+            Cancelar edição
+          </button>
+        </div>
+      </form>
+
+      <h2>Contas e vencimentos</h2>
+      <div id="agenda-lista"></div>
+
+      <div class="actions">
+        <button
+          id="agenda-backup"
+          type="button"
+          class="outline">
+          Baixar backup da agenda
+        </button>
+
+        <label class="file-btn">
+          Restaurar agenda
+          <input
+            id="agenda-restore"
+            type="file"
+            accept=".json,application/json"
+            hidden>
+        </label>
+      </div>
+    </section>
+
+
     <div class="layout">
       <section class="card">
         <h2 id="form-title">Nova movimentação</h2>
