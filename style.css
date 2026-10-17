@@ -53,7 +53,19 @@ button:hover {
 }
 
 #saldo {
+  
+#saldo {
   font-weight: bold;
+}
+
+#saldo.positivo {
   color: #16a34a;
 }
 
+#saldo.negativo {
+  color: #dc2626;
+}
+
+#saldo.zerado {
+  color: #64748b;
+}
