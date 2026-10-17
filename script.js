@@ -34,7 +34,15 @@ function atualizarTela() {
 
   receitas.textContent = formatar(totalReceitas);
   despesas.textContent = formatar(totalDespesas);
-  saldo.textContent = formatar(totalReceitas - totalDespesas);
+  
+const saldoAtual = totalReceitas - totalDespesas;
+
+saldo.textContent = formatar(saldoAtual);
+
+saldo.className =
+  saldoAtual < 0 ? "negativo" :
+  saldoAtual > 0 ? "positivo" : "zerado";
+
 }
 
 formulario.addEventListener("submit", function(evento) {
