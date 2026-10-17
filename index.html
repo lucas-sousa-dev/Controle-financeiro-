@@ -1,47 +1,191 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Controle Financeiro Pessoal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Gestão Financeira | Painel</title>
   <link rel="stylesheet" href="style.css">
-  <script src="script.js" defer></script>
 </head>
 <body>
-  <main>
-    <h1>Controle Financeiro Pessoal</h1>
-    <p>Organize suas receitas e despesas.</p>
+  <header>
+    <div class="wrap header">
+      <div>
+        <small>GESTÃO FINANCEIRA</small>
+        <h1>Meu painel financeiro</h1>
+        <p>Controle simples para pessoas e negócios</p>
+      </div>
+      <button id="calc-toggle" class="outline" type="button">
+        🧮 Calculadora
+      </button>
+    </div>
+  </header>
 
-    <section>
-      <h2>Resumo financeiro</h2>
-      <p>Receitas: <span id="receitas">R$ 0,00</span></p>
-      <p>Despesas: <span id="despesas">R$ 0,00</span></p>
-      <p>Saldo: <span id="saldo">R$ 0,00</span></p>
-    </section>
+  <main class="wrap">
+    <section class="toolbar card">
+      <label>Visualizar mês
+        <input id="mes" type="month">
+      </label>
 
-    <section>
-      <h2>Nova movimentação</h2>
-      <form id="formulario">
-        <label for="descricao">Descrição</label>
-        <input type="text" id="descricao" required>
-
-        <label for="valor">Valor (R$)</label>
-        <input type="number" id="valor" min="0.01" step="0.01" required>
-
-        <label for="tipo">Tipo</label>
-        <select id="tipo">
-          <option value="receita">Receita</option>
-          <option value="despesa">Despesa</option>
+      <label>Perfil
+        <select id="perfil">
+          <option>Pessoal</option>
+          <option>Autônomo</option>
+          <option>MEI</option>
+          <option>Empresa</option>
         </select>
+      </label>
 
-        <button type="submit">Adicionar</button>
-      </form>
+      <button id="export-csv" class="outline">
+        Exportar Excel (CSV)
+      </button>
+      <button id="print" class="outline">
+        Imprimir / PDF
+      </button>
     </section>
 
-    <section>
-      <h2>Movimentações</h2>
-      <ul id="lista-movimentacoes"></ul>
+    <section class="stats">
+      <article class="card">
+        <small>Receitas do mês</small>
+        <strong id="receitas" class="green">R$ 0,00</strong>
+      </article>
+      <article class="card">
+        <small>Despesas do mês</small>
+        <strong id="despesas" class="red">R$ 0,00</strong>
+      </article>
+      <article class="card">
+        <small>Resultado do mês</small>
+        <strong id="resultado">R$ 0,00</strong>
+      </article>
+      <article class="card">
+        <small>Saldo acumulado até o mês</small>
+        <strong id="saldo">R$ 0,00</strong>
+      </article>
+    </section>
+
+    <div class="layout">
+      <section class="card">
+        <h2 id="form-title">Nova movimentação</h2>
+
+        <form id="formulario">
+          <label>Descrição
+            <input id="descricao" required maxlength="100"
+              placeholder="Ex.: Mercado, salário, cliente">
+          </label>
+
+          <div class="two">
+            <label>Valor (R$)
+              <input id="valor" type="number" min="0.01"
+                step="0.01" required placeholder="0,00">
+            </label>
+            <label>Data
+              <input id="data" type="date" required>
+            </label>
+          </div>
+
+          <div class="two">
+            <label>Tipo
+              <select id="tipo">
+                <option value="receita">Receita</option>
+                <option value="despesa">Despesa</option>
+              </select>
+            </label>
+
+            <label>Categoria
+              <select id="categoria">
+                <option>Salário</option>
+                <option>Vendas</option>
+                <option>Serviços</option>
+                <option>Alimentação</option>
+                <option>Moradia</option>
+                <option>Transporte</option>
+                <option>Saúde</option>
+                <option>Impostos</option>
+                <option>Outros</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="actions">
+            <button id="save" type="submit">
+              Adicionar movimentação
+            </button>
+            <button id="cancel-edit" type="button"
+              class="outline hidden">Cancelar edição</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>Resumo por categoria</h2>
+        <div id="categorias-resumo" class="category-list"></div>
+      </section>
+    </div>
+
+    <section class="card">
+      <div class="section-title">
+        <div>
+          <h2>Histórico mensal</h2>
+          <p>Toque em um mês para ver os lançamentos</p>
+        </div>
+        <label>Ano
+          <input id="ano" type="number" min="2000"
+            max="2100" step="1">
+        </label>
+      </div>
+      <div id="historico" class="months"></div>
+    </section>
+
+    <section class="card">
+      <div class="section-title">
+        <div>
+          <h2>Movimentações do período</h2>
+          <p id="periodo-label"></p>
+        </div>
+        <label>Buscar
+          <input id="busca" placeholder="Descrição ou categoria">
+        </label>
+      </div>
+      <div id="lista-movimentacoes" class="entries"></div>
+    </section>
+
+    <section class="card">
+      <h2>Seus dados e segurança</h2>
+      <p>Os registros ficam salvos neste navegador.
+        Faça backups regulares para evitar perdas.</p>
+      <div class="actions">
+        <button id="backup" class="outline">
+          Baixar backup JSON
+        </button>
+        <label class="file-btn">
+          Restaurar backup
+          <input id="restore" type="file"
+            accept=".json,application/json" hidden>
+        </label>
+        <button id="clear" class="danger-btn">
+          Apagar todos os dados
+        </button>
+      </div>
     </section>
   </main>
+
+  <aside id="calculator" class="calculator hidden"
+    aria-label="Calculadora">
+    <div class="section-title">
+      <h2>Calculadora</h2>
+      <button id="calc-close" class="outline" type="button">
+        Fechar
+      </button>
+    </div>
+    <output id="calc-display">0</output>
+    <div id="calc-keys" class="calc-grid"></div>
+  </aside>
+
+  <footer>
+    Gestão Financeira • Controle gerencial.
+    Não substitui serviços contábeis ou fiscais.
+  </footer>
+
+  <script src="script.js"></script>
 </body>
 </html>
