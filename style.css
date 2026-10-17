@@ -528,3 +528,37 @@ footer {
     width: 100%;
   }
 }
+
+
+/* AVISO DE SEGURANÇA */
+
+.aviso-dados {
+  max-width: 900px;
+  margin: 0 auto 20px;
+  padding: 20px;
+  background: #eaf3fb;
+  border: 1px solid #b8d6ed;
+  border-left: 5px solid #2563eb;
+  border-radius: 10px;
+  text-align: left;
+}
+
+.aviso-dados strong {
+  display: block;
+  color: #123456;
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+.aviso-dados p {
+  color: #334155;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 8px 0;
+}
+
+@media print {
+  .aviso-dados {
+    display: none;
+  }
+}
