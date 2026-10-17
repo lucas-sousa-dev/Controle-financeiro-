@@ -1,71 +1,530 @@
 
+/* GESTÃO FINANCEIRA - ESTILO PRINCIPAL */
+
+:root {
+  --azul: #123456;
+  --azul-claro: #eaf3fb;
+  --fundo: #f3f6fa;
+  --branco: #ffffff;
+  --texto: #243447;
+  --verde: #16803c;
+  --vermelho: #dc2626;
+  --cinza: #64748b;
+  --borda: #dce4ed;
+}
+
 * {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  padding: 20px;
-  font-family: Arial, sans-serif;
-  background-color: #f1f5f9;
-  color: #1e293b;
+  background: var(--fundo);
+  color: var(--texto);
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.5;
 }
+
+.wrap {
+  width: min(1120px, 94%);
+  margin: auto;
+}
+
+/* CABEÇALHO */
+
+header {
+  background: var(--azul);
+  color: white;
+  padding: 28px 0;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+}
+
+header h1 {
+  margin: 5px 0;
+  font-size: 28px;
+}
+
+header p {
+  margin: 0;
+  color: #d6e7f5;
+}
+
+header small {
+  color: #a9d5f5;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+/* ESTRUTURA */
 
 main {
-  max-width: 700px;
-  margin: 30px auto;
+  padding: 24px 0 40px;
 }
 
-h1 {
-  color: #1e3a8a;
-  text-align: center;
+.card {
+  background: var(--branco);
+  border: 1px solid var(--borda);
+  border-radius: 14px;
+  padding: 22px;
+  margin-bottom: 20px;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.04);
 }
 
 h2 {
-  color: #2563eb;
+  margin: 0 0 15px;
+  color: var(--azul);
+  font-size: 19px;
 }
 
-section {
-  background-color: white;
-  padding: 20px;
-  margin-top: 20px;
-  border-radius: 12px;
-  box-shadow: 0 3px 10px #00000015;
+p {
+  color: var(--cinza);
 }
 
-input, select, button {
-  padding: 12px;
-  margin: 5px 0;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  font-size: 16px;
+.toolbar {
+  display: flex;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
-button {
-  background-color: #2563eb;
-  color: white;
-  border: none;
-  cursor: pointer;
+.toolbar label {
+  flex: 1;
+  min-width: 150px;
 }
 
-button:hover {
-  background-color: #1d4ed8;
+/* RESUMO FINANCEIRO */
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 15px;
 }
 
-#saldo {
-  
-#saldo {
+.stats .card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stats small {
+  color: var(--cinza);
+  font-size: 13px;
+}
+
+.stats strong {
+  font-size: 23px;
+  overflow-wrap: anywhere;
+}
+
+.green,
+.positivo {
+  color: var(--verde);
+}
+
+.red,
+.negativo {
+  color: var(--vermelho);
+}
+
+.zerado {
+  color: var(--cinza);
+}
+
+/* FORMULÁRIOS */
+
+.layout {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 20px;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
   font-weight: bold;
 }
 
-#saldo.positivo {
-  color: #16a34a;
+input,
+select {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--borda);
+  border-radius: 8px;
+  background: white;
+  color: var(--texto);
+  font-size: 15px;
+  min-width: 0;
 }
 
-#saldo.negativo {
-  color: #dc2626;
+input:focus,
+select:focus {
+  outline: 2px solid #93c5fd;
+  border-color: #2563eb;
 }
 
-#saldo.zerado {
-  color: #64748b;
+.two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+form > label {
+  margin-bottom: 15px;
+}
+
+/* BOTÕES */
+
+button,
+.file-btn {
+  background: var(--azul);
+  color: white;
+  border: 1px solid var(--azul);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  text-align: center;
+}
+
+button:hover,
+.file-btn:hover {
+  opacity: 0.88;
+}
+
+button:focus-visible,
+.file-btn:focus-within {
+  outline: 3px solid #93c5fd;
+}
+
+.outline {
+  background: white;
+  color: var(--azul);
+}
+
+header .outline {
+  background: transparent;
+  color: white;
+  border-color: #b8d6ed;
+}
+
+.danger-btn {
+  background: var(--vermelho);
+  border-color: var(--vermelho);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* TÍTULOS E FILTROS */
+
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.section-title h2 {
+  margin: 0;
+}
+
+.section-title p {
+  margin: 4px 0;
+  font-size: 13px;
+}
+
+.section-title label {
+  min-width: 130px;
+}
+
+/* HISTÓRICO MENSAL */
+
+.months {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.month-card {
+  background: #f8fafc;
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  padding: 15px;
+  text-align: left;
+  color: var(--texto);
+}
+
+.month-card strong {
+  display: block;
+  margin: 8px 0;
+  font-size: 18px;
+}
+
+.month-card small {
+  display: block;
+  color: var(--cinza);
+}
+
+.month-card.active {
+  background: var(--azul-claro);
+  border: 2px solid #2563eb;
+}
+
+.month-card.negative {
+  border-left: 4px solid var(--vermelho);
+}
+
+.month-card.positive {
+  border-left: 4px solid var(--verde);
+}
+
+/* MOVIMENTAÇÕES */
+
+.entries {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+}
+
+.entry-info {
+  min-width: 0;
+}
+
+.entry-info strong {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.entry-info small {
+  color: var(--cinza);
+}
+
+.entry-right {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.entry-right button {
+  padding: 8px 10px;
+  font-size: 12px;
+}
+
+.empty {
+  padding: 20px;
+  text-align: center;
+  color: var(--cinza);
+}
+
+/* RESUMO POR CATEGORIA */
+
+.category-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.category-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.category-bar {
+  height: 9px;
+  background: #e2e8f0;
+  border-radius: 20px;
+  overflow: hidden;
+  margin-top: 5px;
+}
+
+.category-fill {
+  height: 100%;
+  background: #3b82f6;
+  border-radius: 20px;
+}
+
+/* CALCULADORA */
+
+.calculator {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  width: min(340px, calc(100% - 36px));
+  background: white;
+  border: 1px solid var(--borda);
+  border-radius: 15px;
+  padding: 18px;
+  box-shadow: 0 10px 35px rgba(0,0,0,0.22);
+  z-index: 1000;
+}
+
+#calc-display {
+  display: block;
+  background: #edf3f9;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 12px;
+  text-align: right;
+  font-size: 28px;
+  overflow-wrap: anywhere;
+}
+
+.calc-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.calc-grid button {
+  padding: 14px 5px;
+  font-size: 17px;
+}
+
+/* RODAPÉ */
+
+footer {
+  padding: 25px 15px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--cinza);
+}
+
+/* CELULARES E TABLETS */
+
+@media (max-width: 900px) {
+  .stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .months {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  header {
+    padding: 22px 0;
+  }
+
+  header h1 {
+    font-size: 22px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .card {
+    padding: 16px;
+  }
+
+  .stats {
+    gap: 9px;
+  }
+
+  .stats strong {
+    font-size: 19px;
+  }
+
+  .months {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .two {
+    grid-template-columns: 1fr;
+  }
+
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .toolbar label {
+    min-width: 0;
+  }
+
+  .entry {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .entry-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .section-title {
+    align-items: stretch;
+  }
+
+  .actions button,
+  .actions .file-btn {
+    flex: 1;
+  }
+}
+
+/* IMPRESSÃO E PDF */
+
+@media print {
+  body {
+    background: white;
+  }
+
+  header,
+  .toolbar,
+  form,
+  .calculator,
+  .actions,
+  .entry-right button,
+  footer {
+    display: none !important;
+  }
+
+  .card {
+    box-shadow: none;
+    break-inside: avoid;
+  }
+
+  .wrap {
+    width: 100%;
+  }
 }
