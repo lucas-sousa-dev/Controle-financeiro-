@@ -204,41 +204,77 @@ function renderCategories(list) {
 // HISTÓRICO MENSAL
 
 function renderHistory() {
+
+function renderHistory() {
   const root = $("historico");
   root.replaceChildren();
 
-  const year = Number($("ano").value) || new Date().getFullYear();
+  const year = Number($("ano").value) ||
+    new Date().getFullYear();
 
-  for (let month=1; month<=12; month++) {
-    const key = `${year}-${String(month).padStart(2,"0")}`;
+  const months = [...new Set(
+    entries
+      .filter(e => Number(e.data.slice(0,4)) === year)
+      .map(e => e.data.slice(0,7))
+  )].sort().reverse();
 
-    const list = entries.filter(e => e.data.slice(0,7) === key);
-    const result = total(list,"receita") - total(list,"despesa");
+  if (months.length === 0) {
+    root.append(
+      element(
+        "p",
+        "empty",
+        "Nenhuma movimentação registrada neste ano."
+      )
+    );
+    return;
+  }
+
+  months.forEach(key => {
+    const list = entries.filter(
+      e => e.data.slice(0,7) === key
+    );
+
+    const result =
+      total(list,"receita") -
+      total(list,"despesa");
+
+    const [y,m] = key.split("-").map(Number);
+
+    const name = new Intl.DateTimeFormat("pt-BR", {
+      month:"long"
+    }).format(new Date(y,m-1,1));
 
     const btn = element("button","month-card");
     btn.type = "button";
 
-    if (key === selectedMonth()) btn.classList.add("active");
-
-    if (list.length) {
-      btn.classList.add(result < 0 ? "negative" : "positive");
+    if (key === selectedMonth()) {
+      btn.classList.add("active");
     }
 
-    btn.append(
-      element("span","",
-        new Intl.DateTimeFormat("pt-BR",{month:"long"})
-          .format(new Date(year,month-1,1))),
-      element("strong",
-        result < 0 ? "negativo" :
-        result > 0 ? "positivo" : "zerado",
-        money(result)),
-      element("small","",`${list.length} lançamento(s)`)
+    btn.classList.add(
+      result < 0 ? "negative" : "positive"
     );
 
-    btn.addEventListener("click", () => {
+    btn.append(
+      element("span","",name),
+      element(
+        "strong",
+        result < 0 ? "negativo" :
+        result > 0 ? "positivo" : "zerado",
+        money(result)
+      ),
+      element(
+        "small",
+        "",
+        `${list.length} lançamento(s)`
+      )
+    );
+
+    btn.addEventListener("click",() => {
       $("mes").value = key;
       $("busca").value = "";
       render();
+
       $("lista-movimentacoes").scrollIntoView({
         behavior:"smooth",
         block:"nearest"
@@ -246,8 +282,9 @@ function renderHistory() {
     });
 
     root.append(btn);
-  }
+  });
 }
+
 
 // LISTA DE MOVIMENTAÇÕES
 
