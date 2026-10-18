@@ -5,7 +5,15 @@
 
 (() => {
   const AGENDA_KEY = "gestao-financeira-agenda-v1";
+function parseValorBR(texto) {
+  const valor = String(texto).trim();
 
+  if (!/^\d{1,3}(\.\d{3})*(,\d{1,2})?$|^\d+(,\d{1,2})?$/.test(valor)) {
+    return NaN;
+  }
+
+  return Number(valor.replace(/\./g, "").replace(",", "."));
+}
   const byId = id => document.getElementById(id);
 
   const currency = value =>
@@ -159,7 +167,7 @@
     ev.preventDefault();
 
     const descricao = byId("agenda-descricao").value.trim();
-    const valor = Number(byId("agenda-valor").value);
+    const valor = parseValorBR(byId("agenda-valor").value);
     const centavos = roundCents(valor);
     const vencimento = byId("agenda-vencimento").value;
     const categoria = byId("agenda-categoria").value;
@@ -328,7 +336,10 @@
     editing = item.id;
 
     byId("agenda-descricao").value = item.descricao;
-    byId("agenda-valor").value = (item.centavos / 100).toFixed(2);
+    byId("agenda-valor").value = (item.centavos / 100).toLocaleString("pt-BR", {
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2
+});
     byId("agenda-vencimento").value = item.vencimento;
     byId("agenda-categoria").value = item.categoria;
     byId("agenda-tipo").value = "unica";
