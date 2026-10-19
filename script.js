@@ -1,7 +1,7 @@
 
 "use strict";
 
-/* GESTÃO FINANCEIRA — PREVISÃO DO PRÓXIMO MÊS */
+/* GESTÃO FINANCEIRA — CALCULADORA ATUALIZADA */
 
 const $ = id => document.getElementById(id);
 
@@ -977,24 +977,26 @@ function restore(file) {
   reader.readAsText(file);
 }
 
-// CALCULADORA
+// CALCULADORA — PADRÃO BRASILEIRO
 
 function initCalculator() {
   const root = $("calc-keys");
+  root.replaceChildren();
 
   const keys = [
-    "7", "8", "9", "÷",
-    "4", "5", "6", "×",
-    "1", "2", "3", "−",
-    "C", "0", ".", "+", "="
+    "C", "⌫", "%", "÷",
+    "7", "8", "9", "×",
+    "4", "5", "6", "−",
+    "1", "2", "3", "+",
+    "0", ",", "="
   ];
 
   keys.forEach(key => {
     const b = element("button", "", key);
     b.type = "button";
 
-    if (key === "=") {
-      b.style.gridColumn = "span 4";
+    if (key === "0") {
+      b.style.gridColumn = "span 2";
     }
 
     b.addEventListener(
@@ -1006,6 +1008,62 @@ function initCalculator() {
   });
 }
 
+// Converte 23.500,50 em 23500.50
+
+function calcParse(text) {
+  return Number(
+    text
+      .replace(/^−/, "-")
+      .replace(/\./g, "")
+      .replace(",", ".")
+  );
+}
+
+// Formata o número digitado sem inserir vírgula
+
+function calcFormatRaw(raw) {
+  const negative =
+    raw.startsWith("-") || raw.startsWith("−");
+
+  const clean = negative ? raw.slice(1) : raw;
+  const parts = clean.split(",");
+
+  const integer =
+    parts[0].replace(/^0+(?=\d)/, "") || "0";
+
+  const grouped = integer.replace(
+    /\B(?=(\d{3})+(?!\d))/g,
+    "."
+  );
+
+  return (negative ? "−" : "") +
+    grouped +
+    (parts.length > 1 ? "," + parts[1] : "");
+}
+
+// Formata resultados com ponto e vírgula
+
+function calcFormatNumber(number) {
+  if (!Number.isFinite(number)) return "Erro";
+
+  const rounded = Number(number.toFixed(8));
+
+  const raw = String(rounded);
+
+  const decimal = raw.includes("e")
+    ? rounded
+        .toFixed(8)
+        .replace(/0+$/, "")
+        .replace(/\.$/, "")
+    : raw;
+
+  return calcFormatRaw(
+    decimal.replace(".", ",")
+  );
+}
+
+// Operações matemáticas
+
 function calculate(a, b, op) {
   if (op === "+") return a + b;
   if (op === "−") return a - b;
@@ -1014,9 +1072,12 @@ function calculate(a, b, op) {
   return b === 0 ? NaN : a / b;
 }
 
+// Botões e funcionamento
+
 function calcPress(key) {
   const out = $("calc-display");
-  let display = out.textContent;
+  const current = out.textContent;
+  const operators = ["+", "−", "×", "÷"];
 
   if (key === "C") {
     out.textContent = "0";
@@ -1026,30 +1087,80 @@ function calcPress(key) {
     return;
   }
 
-  if (["+", "−", "×", "÷"].includes(key)) {
+  // Apagar um dígito de cada vez
+
+  if (key === "⌫") {
+    if (current === "Erro") {
+      out.textContent = "0";
+    } else if (calcFresh) {
+      out.textContent = "0";
+      calcFresh = false;
+    } else {
+      const raw = current.replace(/\./g, "");
+      const shortened = raw.slice(0, -1);
+
+      out.textContent =
+        shortened &&
+        shortened !== "−" &&
+        shortened !== "-"
+          ? calcFormatRaw(shortened)
+          : "0";
+    }
+    return;
+  }
+
+  // Porcentagem
+
+  if (key === "%") {
+    if (current === "Erro") return;
+
+    const value = calcParse(current);
+
+    const result =
+      calcOp !== null &&
+      calcFirst !== null &&
+      ["+", "−"].includes(calcOp)
+        ? calcFirst * value / 100
+        : value / 100;
+
+    out.textContent = calcFormatNumber(result);
+    calcFresh = false;
+    return;
+  }
+
+  // Soma, subtração, multiplicação e divisão
+
+  if (operators.includes(key)) {
+    if (current === "Erro") return;
+
+    const value = calcParse(current);
+
     if (
       calcOp !== null &&
       calcFirst !== null &&
       !calcFresh
     ) {
-      const v = calculate(
+      const result = calculate(
         calcFirst,
-        Number(display),
+        value,
         calcOp
       );
 
-      if (!Number.isFinite(v)) {
-        out.textContent = "Erro";
+      out.textContent = calcFormatNumber(result);
+
+      if (!Number.isFinite(result)) {
         calcFirst = null;
         calcOp = null;
+        calcFresh = true;
         return;
       }
 
-      calcFirst = v;
-      out.textContent =
-        String(Number(v.toFixed(8)));
-    } else {
-      calcFirst = Number(display);
+      calcFirst = result;
+    } else if (
+      calcFirst === null ||
+      !calcFresh
+    ) {
+      calcFirst = value;
     }
 
     calcOp = key;
@@ -1057,20 +1168,23 @@ function calcPress(key) {
     return;
   }
 
+  // Resultado
+
   if (key === "=") {
+    if (current === "Erro") return;
+
     if (
       calcOp !== null &&
-      calcFirst !== null
+      calcFirst !== null &&
+      !calcFresh
     ) {
-      const v = calculate(
+      const result = calculate(
         calcFirst,
-        Number(display),
+        calcParse(current),
         calcOp
       );
 
-      out.textContent = Number.isFinite(v)
-        ? String(Number(v.toFixed(8)))
-        : "Erro";
+      out.textContent = calcFormatNumber(result);
 
       calcFirst = null;
       calcOp = null;
@@ -1079,29 +1193,43 @@ function calcPress(key) {
     return;
   }
 
-  if (key === ".") {
+  // Vírgula digitada manualmente
+
+  if (key === ",") {
     if (
       calcFresh ||
-      display === "Erro"
+      current === "Erro"
     ) {
-      out.textContent = "0.";
+      out.textContent = "0,";
       calcFresh = false;
-    } else if (!display.includes(".")) {
-      out.textContent += ".";
+    } else if (!current.includes(",")) {
+      out.textContent += ",";
     }
     return;
   }
 
-  out.textContent =
-    calcFresh ||
-    display === "0" ||
-    display === "Erro"
-      ? key
-      : display.length < 15
-        ? display + key
-        : display;
+  // Dígitos com ponto de milhar automático
 
-  calcFresh = false;
+  if (/^\d$/.test(key)) {
+    const raw =
+      calcFresh || current === "Erro"
+        ? ""
+        : current.replace(/\./g, "");
+
+    if (
+      raw.replace(/\D/g, "").length >= 15
+    ) {
+      return;
+    }
+
+    const next =
+      raw === "0"
+        ? key
+        : raw + key;
+
+    out.textContent = calcFormatRaw(next);
+    calcFresh = false;
+  }
 }
 
 // INICIALIZAÇÃO
