@@ -1,7 +1,7 @@
 
 "use strict";
 
-/* GESTÃO FINANCEIRA — SCRIPT 1.2 */
+/* GESTÃO FINANCEIRA — PREVISÃO DO PRÓXIMO MÊS */
 
 const $ = id => document.getElementById(id);
 
@@ -260,6 +260,104 @@ function element(tag, className, content) {
   return el;
 }
 
+// PREVISÃO DE PAGAMENTOS DO PRÓXIMO MÊS
+
+function renderNextMonthForecast() {
+  const root = $("previsao-proximo-lista");
+  const title = $("previsao-proximo-titulo");
+  const totalEl = $("previsao-proximo-total");
+
+  if (!root || !title || !totalEl) return;
+
+  const currentMonth = today().slice(0, 7);
+  const nextMonth = shiftMonth(currentMonth, 1);
+
+  title.textContent = monthName(nextMonth);
+
+  const items = pendingInMonth(nextMonth)
+    .sort((a, b) =>
+      a.vencimento.localeCompare(b.vencimento) ||
+      a.descricao.localeCompare(b.descricao, "pt-BR")
+    );
+
+  root.replaceChildren();
+
+  if (!items.length) {
+    root.append(
+      element(
+        "p",
+        "empty",
+        "Nenhuma conta pendente cadastrada para o próximo mês."
+      )
+    );
+
+    totalEl.textContent = money(0);
+    return;
+  }
+
+  const list = element("div");
+  list.style.display = "grid";
+  list.style.gap = "10px";
+  list.style.marginBottom = "18px";
+
+  let totalCentavos = 0;
+
+  items.forEach(item => {
+    totalCentavos += item.centavos;
+
+    const row = element("div");
+
+    row.style.display = "flex";
+    row.style.justifyContent = "space-between";
+    row.style.alignItems = "flex-start";
+    row.style.flexWrap = "wrap";
+    row.style.gap = "8px";
+    row.style.padding = "12px";
+    row.style.border = "1px solid #dce4ed";
+    row.style.borderRadius = "10px";
+
+    const info = element("div");
+
+    const name = element(
+      "strong",
+      "",
+      `${item.descricao}${
+        item.totalParcelas > 1
+          ? ` — ${item.parcela}/${item.totalParcelas}`
+          : ""
+      }`
+    );
+
+    const due = element(
+      "small",
+      "",
+      `Vencimento: ${item.vencimento
+        .split("-")
+        .reverse()
+        .join("/")}`
+    );
+
+    due.style.display = "block";
+    due.style.marginTop = "4px";
+    due.style.color = "#64748b";
+
+    info.append(name, due);
+
+    const amount = element(
+      "strong",
+      "",
+      money(item.centavos / 100)
+    );
+
+    row.append(info, amount);
+    list.append(row);
+  });
+
+  root.append(list);
+
+  totalEl.textContent = money(totalCentavos / 100);
+}
+
 // PAINEL PRINCIPAL
 
 function render() {
@@ -278,6 +376,7 @@ function render() {
 
   $("periodo-label").textContent = monthName(month);
 
+  renderNextMonthForecast();
   renderCategories(list);
   renderForecast();
   renderHistory();
@@ -338,7 +437,7 @@ function renderCategories(list) {
   });
 }
 
-// PREVISÃO FINANCEIRA
+// HISTÓRICO E PREVISÃO EXISTENTES
 
 function createForecastPanel() {
   let root = $("previsao-financeira");
@@ -565,11 +664,7 @@ function renderHistory() {
     );
 
     btn.append(
-      element(
-        "span",
-        "",
-        monthName(key)
-      ),
+      element("span", "", monthName(key)),
       status,
       detail,
       pending
@@ -1135,11 +1230,22 @@ function init() {
   window.addEventListener(
     "storage",
     event => {
-      if (event.key === AGENDA_KEY) {
+      if (
+        event.key === AGENDA_KEY ||
+        event.key === KEY
+      ) {
+        if (event.key === KEY) {
+          entries = readData();
+        }
+
         render();
       }
     }
   );
+
+  window.addEventListener("focus", () => {
+    renderNextMonthForecast();
+  });
 }
 
 document.addEventListener(
