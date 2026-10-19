@@ -108,7 +108,7 @@
         </label>
 
         <div class="two">
-          <label>Valor (R$)
+          <label id="agenda-valor-label">Valor (R$)
             <input
               id="agenda-valor"
               type="text"
@@ -147,15 +147,41 @@
           </label>
         </div>
 
-        <label id="agenda-quantidade-label" class="hidden">
-          Quantidade de parcelas ou meses
-          <input
-            id="agenda-quantidade"
-            type="number"
-            min="1"
-            max="120"
-            value="1">
-        </label>
+        
+<label id="agenda-valor-modo-label" class="hidden">
+  Como deseja informar o valor?
+  <select id="agenda-valor-modo">
+    <option value="parcela" selected>
+      Valor de cada parcela
+    </option>
+    <option value="total">
+      Valor total da compra
+    </option>
+  </select>
+</label>
+
+<div id="agenda-quantidade-label" class="hidden">
+  <div class="two">
+    <label>
+      Quantidade total de parcelas ou meses
+      <input
+        id="agenda-quantidade"
+        type="number"
+        min="1"
+        max="120"
+        value="1">
+    </label>
+
+    
+  </div>
+</div>
+
+<div id="agenda-calculo" class="hidden" aria-live="polite">
+  <p id="agenda-calculo-total"></p>
+  <p id="agenda-calculo-pago"></p>
+  <p id="agenda-calculo-restante"></p>
+</div>
+
 
         <label id="agenda-pagas-label" class="hidden">
   Parcelas já pagas antes do cadastro
