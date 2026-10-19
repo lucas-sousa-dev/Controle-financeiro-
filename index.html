@@ -37,10 +37,10 @@
         </select>
       </label>
 
-      <button id="export-csv" class="outline">
+      <button id="export-csv" class="outline" type="button">
         Exportar Excel (CSV)
       </button>
-      <button id="print" class="outline">
+      <button id="print" class="outline" type="button">
         Imprimir / PDF
       </button>
     </section>
@@ -50,28 +50,73 @@
         <small>Receitas do mês</small>
         <strong id="receitas" class="green">R$ 0,00</strong>
       </article>
+
       <article class="card">
         <small>Despesas do mês</small>
         <strong id="despesas" class="red">R$ 0,00</strong>
       </article>
+
       <article class="card">
         <small>Resultado do mês</small>
         <strong id="resultado">R$ 0,00</strong>
       </article>
+
       <article class="card">
         <small>Saldo acumulado até o mês</small>
         <strong id="saldo">R$ 0,00</strong>
       </article>
     </section>
 
-    
+    <!-- PREVISÃO DO PRÓXIMO MÊS -->
+
+    <section class="card" id="previsao-proximo-mes">
+      <div class="section-title">
+        <div>
+          <h2>Previsão de pagamentos</h2>
+          <p>
+            Saiba quanto reservar para pagar suas contas
+            no próximo mês.
+          </p>
+        </div>
+      </div>
+
+      <h3 id="previsao-proximo-titulo">
+        Próximo mês
+      </h3>
+
+      <div id="previsao-proximo-lista">
+        <p class="empty">
+          Carregando contas previstas...
+        </p>
+      </div>
+
+      <div class="agenda-resumo">
+        <div class="agenda-resumo-item">
+          <small>Total que preciso reservar</small>
+          <strong id="previsao-proximo-total">
+            R$ 0,00
+          </strong>
+        </div>
+      </div>
+
+      <p>
+        <small>
+          Esta previsão considera as contas ainda pendentes
+          na Agenda Financeira. Não altera o saldo
+          nem cria despesas nas movimentações.
+        </small>
+      </p>
+    </section>
+
     <!-- AGENDA FINANCEIRA -->
 
     <section class="card" id="agenda-financeira">
       <div class="section-title">
         <div>
           <h2>Agenda Financeira</h2>
-          <p>Organize contas, parcelas e vencimentos futuros.</p>
+          <p>
+            Organize contas, parcelas e vencimentos futuros.
+          </p>
         </div>
 
         <label>Visualizar mês
@@ -108,14 +153,15 @@
         </label>
 
         <div class="two">
-          <label id="agenda-valor-label">Valor (R$)
+          <label id="agenda-valor-label">
+            Valor (R$)
             <input
               id="agenda-valor"
               type="text"
               inputmode="decimal"
               maxlength="20"
               required
-              placeholder="Ex.: 23.760,00">
+              placeholder="Ex.: 660,00">
           </label>
 
           <label>Primeiro vencimento
@@ -147,70 +193,50 @@
           </label>
         </div>
 
-        
-<label id="agenda-valor-modo-label" class="hidden">
-  Como deseja informar o valor?
-  <select id="agenda-valor-modo">
-    <option value="parcela" selected>
-      Valor de cada parcela
-    </option>
-    <option value="total">
-      Valor total da compra
-    </option>
-  </select>
-</label>
-
-
-<div id="agenda-quantidade-label" class="hidden">
-  <div class="two">
-    <label>
-      Quantidade total de parcelas ou meses
-      <input
-        id="agenda-quantidade"
-        type="number"
-        min="1"
-        max="120"
-        value="1">
-    </label>
-
-    <label id="agenda-pagas-label" class="hidden">
-      Parcelas já pagas antes do cadastro
-      <input
-        id="agenda-pagas"
-        type="number"
-        min="0"
-        max="120"
-        value="0">
-    </label>
-  </div>
-</div>
-
-<div id="agenda-calculo" class="hidden" aria-live="polite">
-  <p id="agenda-calculo-total"></p>
-  <p id="agenda-calculo-pago"></p>
-  <p id="agenda-calculo-restante"></p>
-</div>
-
-    
-  </div>
-</div>
-
-<div id="agenda-calculo" class="hidden" aria-live="polite">
-  <p id="agenda-calculo-total"></p>
-  <p id="agenda-calculo-pago"></p>
-  <p id="agenda-calculo-restante"></p>
-</div>
-
-
-        <label id="agenda-pagas-label" class="hidden">
-  Parcelas já pagas antes do cadastro
-  <input
-    id="agenda-pagas"
-    type="number"
-    min="0"
-    max="120"
-    value="0">
+        <label id="agenda-valor-modo-label" class="hidden">
+          Como deseja informar o valor?
+          <select id="agenda-valor-modo">
+            <option value="parcela" selected>
+              Valor de cada parcela
+            </option>
+            <option value="total">
+              Valor total da compra
+            </option>
+          </select>
         </label>
+
+        <div id="agenda-quantidade-label" class="hidden">
+          <div class="two">
+            <label>
+              Quantidade total de parcelas ou meses
+              <input
+                id="agenda-quantidade"
+                type="number"
+                min="1"
+                max="120"
+                value="1">
+            </label>
+
+            <label id="agenda-pagas-label" class="hidden">
+              Parcelas já pagas antes do cadastro
+              <input
+                id="agenda-pagas"
+                type="number"
+                min="0"
+                max="120"
+                value="0">
+            </label>
+          </div>
+        </div>
+
+        <div
+          id="agenda-calculo"
+          class="hidden"
+          aria-live="polite">
+          <p id="agenda-calculo-total"></p>
+          <p id="agenda-calculo-pago"></p>
+          <p id="agenda-calculo-restante"></p>
+        </div>
 
         <div class="actions">
           <button id="agenda-save" type="submit">
@@ -248,6 +274,7 @@
       </div>
     </section>
 
+    <!-- MOVIMENTAÇÕES -->
 
     <div class="layout">
       <section class="card">
@@ -255,15 +282,24 @@
 
         <form id="formulario">
           <label>Descrição
-            <input id="descricao" required maxlength="100"
+            <input
+              id="descricao"
+              required
+              maxlength="100"
               placeholder="Ex.: Mercado, salário, cliente">
           </label>
 
           <div class="two">
             <label>Valor (R$)
-              <input id="valor" type="number" min="0.01"
-                step="0.01" required placeholder="0,00">
+              <input
+                id="valor"
+                type="number"
+                min="0.01"
+                step="0.01"
+                required
+                placeholder="0,00">
             </label>
+
             <label>Data
               <input id="data" type="date" required>
             </label>
@@ -296,29 +332,45 @@
             <button id="save" type="submit">
               Adicionar movimentação
             </button>
-            <button id="cancel-edit" type="button"
-              class="outline hidden">Cancelar edição</button>
+
+            <button
+              id="cancel-edit"
+              type="button"
+              class="outline hidden">
+              Cancelar edição
+            </button>
           </div>
         </form>
       </section>
 
       <section class="card">
         <h2>Resumo por categoria</h2>
-        <div id="categorias-resumo" class="category-list"></div>
+        <div
+          id="categorias-resumo"
+          class="category-list">
+        </div>
       </section>
     </div>
+
+    <!-- HISTÓRICO -->
 
     <section class="card">
       <div class="section-title">
         <div>
           <h2>Histórico mensal</h2>
-          <p>Toque em um mês para ver os lançamentos</p>
+          <p>Toque em um mês para ver os lançamentos.</p>
         </div>
+
         <label>Ano
-          <input id="ano" type="number" min="2000"
-            max="2100" step="1">
+          <input
+            id="ano"
+            type="number"
+            min="2000"
+            max="2100"
+            step="1">
         </label>
       </div>
+
       <div id="historico" class="months"></div>
     </section>
 
@@ -328,70 +380,102 @@
           <h2>Movimentações do período</h2>
           <p id="periodo-label"></p>
         </div>
+
         <label>Buscar
-          <input id="busca" placeholder="Descrição ou categoria">
+          <input
+            id="busca"
+            placeholder="Descrição ou categoria">
         </label>
       </div>
-      <div id="lista-movimentacoes" class="entries"></div>
+
+      <div
+        id="lista-movimentacoes"
+        class="entries">
+      </div>
     </section>
+
+    <!-- BACKUP -->
 
     <section class="card">
       <h2>Seus dados e segurança</h2>
-      <p>Os registros ficam salvos neste navegador.
-        Faça backups regulares para evitar perdas.</p>
+
+      <p>
+        Os registros ficam salvos neste navegador.
+        Faça backups regulares para evitar perdas.
+      </p>
+
       <div class="actions">
-        <button id="backup" class="outline">
+        <button
+          id="backup"
+          type="button"
+          class="outline">
           Baixar backup JSON
         </button>
+
         <label class="file-btn">
           Restaurar backup
-          <input id="restore" type="file"
-            accept=".json,application/json" hidden>
+          <input
+            id="restore"
+            type="file"
+            accept=".json,application/json"
+            hidden>
         </label>
-        <button id="clear" class="danger-btn">
+
+        <button
+          id="clear"
+          type="button"
+          class="danger-btn">
           Apagar todos os dados
         </button>
       </div>
     </section>
   </main>
 
-  <aside id="calculator" class="calculator hidden"
+  <!-- CALCULADORA -->
+
+  <aside
+    id="calculator"
+    class="calculator hidden"
     aria-label="Calculadora">
     <div class="section-title">
       <h2>Calculadora</h2>
-      <button id="calc-close" class="outline" type="button">
+
+      <button
+        id="calc-close"
+        class="outline"
+        type="button">
         Fechar
       </button>
     </div>
+
     <output id="calc-display">0</output>
     <div id="calc-keys" class="calc-grid"></div>
   </aside>
 
-    
-<footer>
-  <div class="aviso-dados">
-    <strong>🔒 Segurança dos seus dados</strong>
+  <footer>
+    <div class="aviso-dados">
+      <strong>🔒 Segurança dos seus dados</strong>
+
+      <p>
+        Seus registros são armazenados neste navegador,
+        e não em uma conta online.
+        A limpeza dos dados do navegador, a perda ou
+        a troca do aparelho podem causar a perda
+        das informações financeiras.
+      </p>
+
+      <p>
+        Recomendamos realizar backups regularmente
+        e guardar os arquivos em local seguro.
+        Utilize a opção "Baixar backup JSON"
+        disponível no sistema.
+      </p>
+    </div>
 
     <p>
-      Seus registros são armazenados neste navegador,
-      e não em uma conta online.
-      A limpeza dos dados do navegador, a perda ou
-      a troca do aparelho podem causar a perda
-      das informações financeiras.
+      Gestão Financeira • Controle gerencial.
+      Não substitui serviços contábeis ou fiscais.
     </p>
-
-    <p>
-      Recomendamos realizar backups regularmente
-      e guardar os arquivos em local seguro.
-      Utilize a opção "Baixar backup JSON"
-      disponível no sistema.
-    </p>
-  </div>
-
-  <p>
-    Gestão Financeira • Controle gerencial.
-    Não substitui serviços contábeis ou fiscais.
-  </p>
   </footer>
 
   <script src="script.js"></script>
