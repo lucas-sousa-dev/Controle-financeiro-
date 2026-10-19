@@ -160,6 +160,7 @@
   </select>
 </label>
 
+
 <div id="agenda-quantidade-label" class="hidden">
   <div class="two">
     <label>
@@ -171,6 +172,24 @@
         max="120"
         value="1">
     </label>
+
+    <label id="agenda-pagas-label" class="hidden">
+      Parcelas já pagas antes do cadastro
+      <input
+        id="agenda-pagas"
+        type="number"
+        min="0"
+        max="120"
+        value="0">
+    </label>
+  </div>
+</div>
+
+<div id="agenda-calculo" class="hidden" aria-live="polite">
+  <p id="agenda-calculo-total"></p>
+  <p id="agenda-calculo-pago"></p>
+  <p id="agenda-calculo-restante"></p>
+</div>
 
     
   </div>
