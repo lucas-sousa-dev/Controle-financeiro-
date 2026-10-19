@@ -1,19 +1,11 @@
 
 "use strict";
 
-/* AGENDA FINANCEIRA — VERSÃO 1.1 */
+/* AGENDA FINANCEIRA — VERSÃO 1.2 */
 
 (() => {
   const AGENDA_KEY = "gestao-financeira-agenda-v1";
-function parseValorBR(texto) {
-  const valor = String(texto).trim();
 
-  if (!/^\d{1,3}(\.\d{3})*(,\d{1,2})?$|^\d+(,\d{1,2})?$/.test(valor)) {
-    return NaN;
-  }
-
-  return Number(valor.replace(/\./g, "").replace(",", "."));
-}
   const byId = id => document.getElementById(id);
 
   const currency = value =>
@@ -34,7 +26,20 @@ function parseValorBR(texto) {
 
   const formatDate = s => s.split("-").reverse().join("/");
 
-  const validISO = s => {
+  const roundCents = value =>
+    Math.round((value + Number.EPSILON) * 100);
+
+  function parseValorBR(texto) {
+    const valor = String(texto).trim();
+
+    if (!/^\d{1,3}(\.\d{3})*(,\d{1,2})?$|^\d+(,\d{1,2})?$/.test(valor)) {
+      return NaN;
+    }
+
+    return Number(valor.replace(/\./g, "").replace(",", "."));
+  }
+
+  function validISO(s) {
     if (typeof s !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(s)) {
       return false;
     }
@@ -45,9 +50,9 @@ function parseValorBR(texto) {
     return date.getFullYear() === y &&
       date.getMonth() === m - 1 &&
       date.getDate() === d;
-  };
+  }
 
-  const addMonths = (start, offset) => {
+  function addMonths(start, offset) {
     const [y, m, d] = start.split("-").map(Number);
     const first = new Date(y, m - 1 + offset, 1);
     const last = new Date(
@@ -57,10 +62,7 @@ function parseValorBR(texto) {
     ).getDate();
 
     return `${first.getFullYear()}-${String(first.getMonth() + 1).padStart(2, "0")}-${String(Math.min(d, last)).padStart(2, "0")}`;
-  };
-
-  const roundCents = value =>
-    Math.round((value + Number.EPSILON) * 100);
+  }
 
   const validItem = x =>
     x &&
@@ -79,7 +81,11 @@ function parseValorBR(texto) {
     x.parcela >= 1 &&
     Number.isInteger(x.totalParcelas) &&
     x.totalParcelas >= x.parcela &&
-    x.totalParcelas <= 120;
+    x.totalParcelas <= 120 &&
+    (
+      x.pagoAnteriormente === undefined ||
+      typeof x.pagoAnteriormente === "boolean"
+    );
 
   let agenda = [];
   let editing = null;
@@ -132,7 +138,9 @@ function parseValorBR(texto) {
   }
 
   function status(item) {
-    if (linkedEntry(item)) return "Pago";
+    if (item.pagoAnteriormente || linkedEntry(item)) {
+      return "Pago";
+    }
 
     return item.vencimento < isoToday()
       ? "Atrasado"
@@ -148,6 +156,8 @@ function parseValorBR(texto) {
     byId("agenda-vencimento").value = isoToday();
     byId("agenda-tipo").value = "unica";
     byId("agenda-quantidade").value = 1;
+    byId("agenda-pagas").value = 0;
+    byId("agenda-valor-modo").value = "parcela";
 
     byId("agenda-form-title").textContent = "Nova provisão";
     byId("agenda-save").textContent = "Cadastrar provisão";
@@ -156,89 +166,119 @@ function parseValorBR(texto) {
     toggleQuantity();
   }
 
-  
-function toggleQuantity() {
-  const tipo = byId("agenda-tipo").value;
-  const editando = !!editing;
+  function toggleQuantity() {
+    const tipo = byId("agenda-tipo").value;
+    const editando = !!editing;
 
-  const parcelada = tipo === "parcelada" && !editando;
-  const multipla = tipo !== "unica" && !editando;
+    const parcelada = tipo === "parcelada" && !editando;
+    const multipla = tipo !== "unica" && !editando;
 
-  byId("agenda-quantidade-label").classList.toggle(
-    "hidden", !multipla
-  );
+    byId("agenda-quantidade-label").classList.toggle(
+      "hidden", !multipla
+    );
 
-  byId("agenda-pagas-label").classList.toggle(
-    "hidden", !parcelada
-  );
+    byId("agenda-pagas-label").classList.toggle(
+      "hidden", !parcelada
+    );
 
-  byId("agenda-valor-modo-label").classList.toggle(
-    "hidden", !parcelada
-  );
+    byId("agenda-valor-modo-label").classList.toggle(
+      "hidden", !parcelada
+    );
 
-  byId("agenda-calculo").classList.toggle(
-    "hidden", !parcelada
-  );
+    byId("agenda-calculo").classList.toggle(
+      "hidden", !parcelada
+    );
 
-  byId("agenda-valor-label").firstChild.textContent =
-    parcelada
-      ? "Valor informado (R$) "
-      : "Valor (R$) ";
+    byId("agenda-valor-label").firstChild.textContent =
+      parcelada
+        ? "Valor informado (R$) "
+        : "Valor (R$) ";
 
-  atualizarCalculoParcelas();
-}
-
-function atualizarCalculoParcelas() {
-  const tipo = byId("agenda-tipo").value;
-
-  if (tipo !== "parcelada" || editing) return;
-
-  const valor = parseValorBR(byId("agenda-valor").value);
-  const quantidade = Number(byId("agenda-quantidade").value);
-  const pagas = Number(byId("agenda-pagas").value);
-  const modo = byId("agenda-valor-modo").value;
-
-  const valido =
-    Number.isFinite(valor) &&
-    valor > 0 &&
-    Number.isInteger(quantidade) &&
-    quantidade >= 1 &&
-    quantidade <= 120 &&
-    Number.isInteger(pagas) &&
-    pagas >= 0 &&
-    pagas <= quantidade;
-
-  if (!valido) {
-    byId("agenda-calculo-total").textContent =
-      "Informe valores válidos para visualizar o cálculo.";
-
-    byId("agenda-calculo-pago").textContent = "";
-    byId("agenda-calculo-restante").textContent = "";
-    return;
+    atualizarCalculoParcelas();
   }
 
-  const totalCentavos = roundCents(
-    modo === "parcela" ? valor * quantidade : valor
-  );
+  // CÁLCULO DAS PARCELAS
 
-  const base = Math.floor(totalCentavos / quantidade);
-  const resto = totalCentavos % quantidade;
+  function calcularParcelas(centavos, quantidade, modo) {
+    const total =
+      modo === "total"
+        ? centavos
+        : centavos * quantidade;
 
-  const pagoCentavos =
-    base * pagas + Math.min(pagas, resto);
+    if (
+      !Number.isSafeInteger(total) ||
+      total < 1 ||
+      total > 1e14
+    ) {
+      return null;
+    }
 
-  const restanteCentavos = totalCentavos - pagoCentavos;
+    const base = Math.floor(total / quantidade);
+    const resto = total % quantidade;
 
-  byId("agenda-calculo-total").textContent =
-    `Valor total: ${currency(totalCentavos / 100)}`;
+    if (base < 1) return null;
 
-  byId("agenda-calculo-pago").textContent =
-    `Já pago (${pagas} parcelas): ${currency(pagoCentavos / 100)}`;
+    return {
+      total,
+      valores: Array.from(
+        { length: quantidade },
+        (_, i) => base + (i < resto ? 1 : 0)
+      )
+    };
+  }
 
-  byId("agenda-calculo-restante").textContent =
-    `Restante (${quantidade - pagas} parcelas): ${currency(restanteCentavos / 100)}`;
-}
+  function atualizarCalculoParcelas() {
+    if (
+      byId("agenda-tipo").value !== "parcelada" ||
+      editing
+    ) {
+      return;
+    }
 
+    const valor = parseValorBR(byId("agenda-valor").value);
+    const centavos = roundCents(valor);
+    const quantidade = Number(byId("agenda-quantidade").value);
+    const pagas = Number(byId("agenda-pagas").value);
+    const modo = byId("agenda-valor-modo").value;
+
+    const valido =
+      Number.isSafeInteger(centavos) &&
+      centavos > 0 &&
+      Number.isInteger(quantidade) &&
+      quantidade >= 1 &&
+      quantidade <= 120 &&
+      Number.isInteger(pagas) &&
+      pagas >= 0 &&
+      pagas <= quantidade;
+
+    const calculo = valido
+      ? calcularParcelas(centavos, quantidade, modo)
+      : null;
+
+    if (!calculo) {
+      byId("agenda-calculo-total").textContent =
+        "Informe valores válidos para visualizar o cálculo.";
+
+      byId("agenda-calculo-pago").textContent = "";
+      byId("agenda-calculo-restante").textContent = "";
+      return;
+    }
+
+    const pago = calculo.valores
+      .slice(0, pagas)
+      .reduce((s, v) => s + v, 0);
+
+    byId("agenda-calculo-total").textContent =
+      `Valor total: ${currency(calculo.total / 100)}`;
+
+    byId("agenda-calculo-pago").textContent =
+      `Já pago (${pagas} parcelas): ${currency(pago / 100)}`;
+
+    byId("agenda-calculo-restante").textContent =
+      `Restante (${quantidade - pagas} parcelas): ${currency((calculo.total - pago) / 100)}`;
+  }
+
+  // CADASTRO E EDIÇÃO
 
   function submit(ev) {
     ev.preventDefault();
@@ -255,6 +295,16 @@ function atualizarCalculoParcelas() {
         ? 1
         : Number(byId("agenda-quantidade").value);
 
+    const pagas =
+      tipo === "parcelada" && !editing
+        ? Number(byId("agenda-pagas").value)
+        : 0;
+
+    const modo =
+      tipo === "parcelada" && !editing
+        ? byId("agenda-valor-modo").value
+        : "parcela";
+
     if (
       !descricao ||
       descricao.length > 100 ||
@@ -264,21 +314,22 @@ function atualizarCalculoParcelas() {
       centavos > 1e14 ||
       !Number.isInteger(quantidade) ||
       quantidade < 1 ||
-      quantidade > 120
+      quantidade > 120 ||
+      !Number.isInteger(pagas) ||
+      pagas < 0 ||
+      pagas > quantidade
     ) {
-      alert("Confira descrição, valor, vencimento e quantidade (máximo 120).");
+      alert("Confira descrição, valor, vencimento, quantidade e parcelas já pagas (máximo 120).");
       return;
     }
-
-    // EDIÇÃO DE UMA PROVISÃO
 
     if (editing) {
       const item = agenda.find(x => x.id === editing);
 
       if (!item) return;
 
-      if (linkedEntry(item)) {
-        alert("Desfaça o pagamento antes de editar esta provisão.");
+      if (linkedEntry(item) || item.pagoAnteriormente) {
+        alert("Não é possível editar uma parcela já paga. Para pagamentos registrados, desfaça o pagamento antes.");
         return;
       }
 
@@ -296,50 +347,56 @@ function atualizarCalculoParcelas() {
       return;
     }
 
-    // CRIAÇÃO DE PROVISÕES E PARCELAS
+    const calculo = calcularParcelas(
+      centavos,
+      quantidade,
+      modo
+    );
 
-    const group = uid();
-    const count = tipo === "unica" ? 1 : quantidade;
-
-    const base = Math.floor(centavos / quantidade);
-    const remainder = centavos % quantidade;
-
-    const items = Array.from({ length: count }, (_, i) => ({
-      id: uid(),
-      group,
-      descricao,
-      categoria,
-
-      vencimento:
-        tipo === "unica"
-          ? vencimento
-          : addMonths(vencimento, i),
-
-      centavos:
-        tipo === "parcelada"
-          ? base + (i < remainder ? 1 : 0)
-          : centavos,
-
-      parcela: i + 1,
-      totalParcelas: count,
-      modalidade: tipo
-    }));
-
-    if (items.some(x => x.centavos < 1)) {
-      alert("O valor total é insuficiente para essa quantidade de parcelas.");
+    if (!calculo) {
+      alert("Confira o valor: cada parcela deve ter pelo menos R$ 0,01 e o total não pode exceder o limite permitido.");
       return;
     }
+
+    const group = uid();
+
+    const items = Array.from(
+      { length: quantidade },
+      (_, i) => ({
+        id: uid(),
+        group,
+        descricao,
+        categoria,
+
+        vencimento:
+          tipo === "unica"
+            ? vencimento
+            : addMonths(vencimento, i - pagas),
+
+        centavos: calculo.valores[i],
+
+        parcela: i + 1,
+        totalParcelas: quantidade,
+        modalidade: tipo,
+
+        pagoAnteriormente:
+          tipo === "parcelada" && i < pagas
+      })
+    );
 
     if (save([...agenda, ...items])) {
       reset();
       renderAgenda();
+      alert("Provisões cadastradas com sucesso.");
     }
   }
 
   // CONFIRMAR PAGAMENTO
 
   function pay(item) {
-    if (linkedEntry(item)) return;
+    if (item.pagoAnteriormente || linkedEntry(item)) {
+      return;
+    }
 
     const data = prompt(
       `Data do pagamento de ${item.descricao} (AAAA-MM-DD):`,
@@ -384,6 +441,7 @@ function atualizarCalculoParcelas() {
 
   function undo(item) {
     if (
+      item.pagoAnteriormente ||
       !linkedEntry(item) ||
       !confirm(
         `Desfazer pagamento de "${item.descricao}"? O lançamento correspondente será removido.`
@@ -405,6 +463,11 @@ function atualizarCalculoParcelas() {
   // EDITAR PROVISÃO
 
   function edit(item) {
+    if (item.pagoAnteriormente) {
+      alert("Esta parcela foi informada como paga antes do cadastro e está preservada no histórico.");
+      return;
+    }
+
     if (linkedEntry(item)) {
       alert("Desfaça o pagamento antes de editar.");
       return;
@@ -413,16 +476,23 @@ function atualizarCalculoParcelas() {
     editing = item.id;
 
     byId("agenda-descricao").value = item.descricao;
-    byId("agenda-valor").value = (item.centavos / 100).toLocaleString("pt-BR", {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2
-});
+
+    byId("agenda-valor").value =
+      (item.centavos / 100).toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+
     byId("agenda-vencimento").value = item.vencimento;
     byId("agenda-categoria").value = item.categoria;
     byId("agenda-tipo").value = "unica";
 
-    byId("agenda-form-title").textContent = "Editar provisão";
-    byId("agenda-save").textContent = "Salvar alterações";
+    byId("agenda-form-title").textContent =
+      "Editar provisão";
+
+    byId("agenda-save").textContent =
+      "Salvar alterações";
+
     byId("agenda-cancel").classList.remove("hidden");
 
     toggleQuantity();
@@ -436,6 +506,11 @@ function atualizarCalculoParcelas() {
   // EXCLUIR PROVISÃO
 
   function remove(item) {
+    if (item.pagoAnteriormente) {
+      alert("Esta parcela já paga faz parte do histórico. Para corrigir o cadastro, utilize um backup ou revise o financiamento.");
+      return;
+    }
+
     if (linkedEntry(item)) {
       alert("Desfaça o pagamento antes de excluir esta provisão.");
       return;
@@ -455,7 +530,7 @@ function atualizarCalculoParcelas() {
     }
   }
 
-  // BOTÕES DA AGENDA
+  // BOTÕES
 
   function button(label, action, className = "outline") {
     const el = document.createElement("button");
@@ -502,10 +577,8 @@ function atualizarCalculoParcelas() {
 
     if (!list.length) {
       const p = document.createElement("p");
-
       p.className = "empty";
       p.textContent = "Nenhuma provisão neste mês.";
-
       root.append(p);
       return;
     }
@@ -533,7 +606,10 @@ function atualizarCalculoParcelas() {
       badge.className =
         `agenda-status ${state.toLowerCase()}`;
 
-      badge.textContent = state;
+      badge.textContent =
+        item.pagoAnteriormente
+          ? "Pago anteriormente"
+          : state;
 
       top.append(name, badge);
 
@@ -545,7 +621,9 @@ function atualizarCalculoParcelas() {
       const actions = document.createElement("div");
       actions.className = "agenda-actions";
 
-      if (state === "Pago") {
+      if (item.pagoAnteriormente) {
+        // Pagamento histórico: não gera despesa nova.
+      } else if (state === "Pago") {
         actions.append(
           button(
             "Desfazer pagamento",
@@ -575,7 +653,7 @@ function atualizarCalculoParcelas() {
     }
   }
 
-  // BACKUP DA AGENDA
+  // BACKUP
 
   function backupAgenda() {
     const payload = {
@@ -603,7 +681,7 @@ function atualizarCalculoParcelas() {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
 
-  // RESTAURAR BACKUP DA AGENDA
+  // RESTAURAR BACKUP
 
   function restoreAgenda(file) {
     if (!file) return;
@@ -656,7 +734,7 @@ function atualizarCalculoParcelas() {
     reader.readAsText(file);
   }
 
-  // INICIALIZAÇÃO DA AGENDA
+  // INICIALIZAÇÃO
 
   document.addEventListener("DOMContentLoaded", () => {
     if (!byId("agenda-form")) return;
@@ -675,27 +753,23 @@ function atualizarCalculoParcelas() {
       toggleQuantity
     );
 
+    [
+      "agenda-valor",
+      "agenda-quantidade",
+      "agenda-pagas",
+      "agenda-valor-modo"
+    ].forEach(id => {
+      byId(id).addEventListener(
+        "input",
+        atualizarCalculoParcelas
+      );
 
-    
-[
-  "agenda-valor",
-  "agenda-quantidade",
-  "agenda-pagas",
-  "agenda-valor-modo"
-].forEach(id => {
-  byId(id).addEventListener(
-    "input",
-    atualizarCalculoParcelas
-  );
+      byId(id).addEventListener(
+        "change",
+        atualizarCalculoParcelas
+      );
+    });
 
-  byId(id).addEventListener(
-    "change",
-    atualizarCalculoParcelas
-  );
-});
-
-
-    
     byId("agenda-cancel").addEventListener(
       "click",
       reset
@@ -734,4 +808,3 @@ function atualizarCalculoParcelas() {
     );
   });
 })();
-
