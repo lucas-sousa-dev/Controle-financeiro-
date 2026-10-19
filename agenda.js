@@ -157,11 +157,19 @@ function parseValorBR(texto) {
   }
 
   function toggleQuantity() {
-    byId("agenda-quantidade-label").classList.toggle(
-      "hidden",
-      byId("agenda-tipo").value === "unica" || !!editing
-    );
-  }
+  const tipo = byId("agenda-tipo").value;
+  const editando = !!editing;
+
+  byId("agenda-quantidade-label").classList.toggle(
+    "hidden",
+    tipo === "unica" || editando
+  );
+
+  byId("agenda-pagas-label").classList.toggle(
+    "hidden",
+    tipo !== "parcelada" || editando
+  );
+}
 
   function submit(ev) {
     ev.preventDefault();
