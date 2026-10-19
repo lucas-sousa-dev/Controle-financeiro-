@@ -156,20 +156,89 @@ function parseValorBR(texto) {
     toggleQuantity();
   }
 
-  function toggleQuantity() {
+  
+function toggleQuantity() {
   const tipo = byId("agenda-tipo").value;
   const editando = !!editing;
 
+  const parcelada = tipo === "parcelada" && !editando;
+  const multipla = tipo !== "unica" && !editando;
+
   byId("agenda-quantidade-label").classList.toggle(
-    "hidden",
-    tipo === "unica" || editando
+    "hidden", !multipla
   );
 
   byId("agenda-pagas-label").classList.toggle(
-    "hidden",
-    tipo !== "parcelada" || editando
+    "hidden", !parcelada
   );
+
+  byId("agenda-valor-modo-label").classList.toggle(
+    "hidden", !parcelada
+  );
+
+  byId("agenda-calculo").classList.toggle(
+    "hidden", !parcelada
+  );
+
+  byId("agenda-valor-label").firstChild.textContent =
+    parcelada
+      ? "Valor informado (R$) "
+      : "Valor (R$) ";
+
+  atualizarCalculoParcelas();
 }
+
+function atualizarCalculoParcelas() {
+  const tipo = byId("agenda-tipo").value;
+
+  if (tipo !== "parcelada" || editing) return;
+
+  const valor = parseValorBR(byId("agenda-valor").value);
+  const quantidade = Number(byId("agenda-quantidade").value);
+  const pagas = Number(byId("agenda-pagas").value);
+  const modo = byId("agenda-valor-modo").value;
+
+  const valido =
+    Number.isFinite(valor) &&
+    valor > 0 &&
+    Number.isInteger(quantidade) &&
+    quantidade >= 1 &&
+    quantidade <= 120 &&
+    Number.isInteger(pagas) &&
+    pagas >= 0 &&
+    pagas <= quantidade;
+
+  if (!valido) {
+    byId("agenda-calculo-total").textContent =
+      "Informe valores válidos para visualizar o cálculo.";
+
+    byId("agenda-calculo-pago").textContent = "";
+    byId("agenda-calculo-restante").textContent = "";
+    return;
+  }
+
+  const totalCentavos = roundCents(
+    modo === "parcela" ? valor * quantidade : valor
+  );
+
+  const base = Math.floor(totalCentavos / quantidade);
+  const resto = totalCentavos % quantidade;
+
+  const pagoCentavos =
+    base * pagas + Math.min(pagas, resto);
+
+  const restanteCentavos = totalCentavos - pagoCentavos;
+
+  byId("agenda-calculo-total").textContent =
+    `Valor total: ${currency(totalCentavos / 100)}`;
+
+  byId("agenda-calculo-pago").textContent =
+    `Já pago (${pagas} parcelas): ${currency(pagoCentavos / 100)}`;
+
+  byId("agenda-calculo-restante").textContent =
+    `Restante (${quantidade - pagas} parcelas): ${currency(restanteCentavos / 100)}`;
+}
+
 
   function submit(ev) {
     ev.preventDefault();
@@ -606,6 +675,27 @@ function parseValorBR(texto) {
       toggleQuantity
     );
 
+
+    
+[
+  "agenda-valor",
+  "agenda-quantidade",
+  "agenda-pagas",
+  "agenda-valor-modo"
+].forEach(id => {
+  byId(id).addEventListener(
+    "input",
+    atualizarCalculoParcelas
+  );
+
+  byId(id).addEventListener(
+    "change",
+    atualizarCalculoParcelas
+  );
+});
+
+
+    
     byId("agenda-cancel").addEventListener(
       "click",
       reset
