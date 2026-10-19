@@ -1,7 +1,7 @@
 
 "use strict";
 
-/* AGENDA FINANCEIRA — VERSÃO 1.2 */
+/* AGENDA FINANCEIRA — VERSÃO 1.3 */
 
 (() => {
   const AGENDA_KEY = "gestao-financeira-agenda-v1";
@@ -131,7 +131,7 @@
     }
   }
 
-  // VÍNCULO COM MOVIMENTAÇÕES
+  // PAGAMENTOS E SITUAÇÃO
 
   function linkedEntry(item) {
     return entries.find(e => e.id === `agenda-${item.id}`);
@@ -143,8 +143,50 @@
     }
 
     return item.vencimento < isoToday()
-      ? "Atrasado"
-      : "Pendente";
+      ? "Vencido"
+      : "A vencer";
+  }
+
+  function corrigirPagamentoAnterior(item) {
+    if (!item.pagoAnteriormente) return;
+
+    if (!confirm(
+      `A parcela ${item.parcela}/${item.totalParcelas} está registrada como paga anteriormente.\n\nDeseja retirar essa confirmação de pagamento?`
+    )) {
+      return;
+    }
+
+    const next = agenda.map(x =>
+      x.id === item.id
+        ? { ...x, pagoAnteriormente: false }
+        : x
+    );
+
+    if (save(next)) {
+      renderAgenda();
+    }
+  }
+
+  function registrarPagamentoAnterior(item) {
+    if (item.pagoAnteriormente || linkedEntry(item)) {
+      return;
+    }
+
+    if (!confirm(
+      `Confirmar que a parcela ${item.parcela}/${item.totalParcelas} já foi paga antes do cadastro?\n\nEla será marcada como paga sem criar uma nova despesa.`
+    )) {
+      return;
+    }
+
+    const next = agenda.map(x =>
+      x.id === item.id
+        ? { ...x, pagoAnteriormente: true }
+        : x
+    );
+
+    if (save(next)) {
+      renderAgenda();
+    }
   }
 
   // FORMULÁRIO
@@ -189,15 +231,21 @@
       "hidden", !parcelada
     );
 
+    const modo = byId("agenda-valor-modo").value;
+
     byId("agenda-valor-label").firstChild.textContent =
       parcelada
-        ? "Valor informado (R$) "
+        ? (
+            modo === "total"
+              ? "Valor total da compra (R$) "
+              : "Valor de cada parcela (R$) "
+          )
         : "Valor (R$) ";
 
     atualizarCalculoParcelas();
   }
 
-  // CÁLCULO DAS PARCELAS
+  // CÁLCULO
 
   function calcularParcelas(centavos, quantidade, modo) {
     const total =
@@ -278,7 +326,7 @@
       `Restante (${quantidade - pagas} parcelas): ${currency((calculo.total - pago) / 100)}`;
   }
 
-  // CADASTRO E EDIÇÃO
+  // CADASTRO
 
   function submit(ev) {
     ev.preventDefault();
@@ -319,9 +367,11 @@
       pagas < 0 ||
       pagas > quantidade
     ) {
-      alert("Confira descrição, valor, vencimento, quantidade e parcelas já pagas (máximo 120).");
+      alert("Confira descrição, valor, vencimento, quantidade e parcelas já pagas.");
       return;
     }
+
+    // EDITAR UMA PROVISÃO
 
     if (editing) {
       const item = agenda.find(x => x.id === editing);
@@ -329,7 +379,7 @@
       if (!item) return;
 
       if (linkedEntry(item) || item.pagoAnteriormente) {
-        alert("Não é possível editar uma parcela já paga. Para pagamentos registrados, desfaça o pagamento antes.");
+        alert("Desfaça ou corrija o pagamento antes de editar esta provisão.");
         return;
       }
 
@@ -354,7 +404,7 @@
     );
 
     if (!calculo) {
-      alert("Confira o valor: cada parcela deve ter pelo menos R$ 0,01 e o total não pode exceder o limite permitido.");
+      alert("O valor ou a quantidade de parcelas é inválido.");
       return;
     }
 
@@ -368,13 +418,13 @@
         descricao,
         categoria,
 
+        // A data informada é da PRIMEIRA parcela.
         vencimento:
           tipo === "unica"
             ? vencimento
-            : addMonths(vencimento, i - pagas),
+            : addMonths(vencimento, i),
 
         centavos: calculo.valores[i],
-
         parcela: i + 1,
         totalParcelas: quantidade,
         modalidade: tipo,
@@ -391,7 +441,7 @@
     }
   }
 
-  // CONFIRMAR PAGAMENTO
+  // PAGAR PARCELA
 
   function pay(item) {
     if (item.pagoAnteriormente || linkedEntry(item)) {
@@ -441,7 +491,6 @@
 
   function undo(item) {
     if (
-      item.pagoAnteriormente ||
       !linkedEntry(item) ||
       !confirm(
         `Desfazer pagamento de "${item.descricao}"? O lançamento correspondente será removido.`
@@ -460,16 +509,11 @@
     }
   }
 
-  // EDITAR PROVISÃO
+  // EDITAR
 
   function edit(item) {
-    if (item.pagoAnteriormente) {
-      alert("Esta parcela foi informada como paga antes do cadastro e está preservada no histórico.");
-      return;
-    }
-
-    if (linkedEntry(item)) {
-      alert("Desfaça o pagamento antes de editar.");
+    if (item.pagoAnteriormente || linkedEntry(item)) {
+      alert("Corrija ou desfaça o pagamento antes de editar.");
       return;
     }
 
@@ -503,16 +547,11 @@
     });
   }
 
-  // EXCLUIR PROVISÃO
+  // EXCLUIR
 
   function remove(item) {
-    if (item.pagoAnteriormente) {
-      alert("Esta parcela já paga faz parte do histórico. Para corrigir o cadastro, utilize um backup ou revise o financiamento.");
-      return;
-    }
-
-    if (linkedEntry(item)) {
-      alert("Desfaça o pagamento antes de excluir esta provisão.");
+    if (item.pagoAnteriormente || linkedEntry(item)) {
+      alert("Corrija ou desfaça o pagamento antes de excluir.");
       return;
     }
 
@@ -543,7 +582,7 @@
     return el;
   }
 
-  // EXIBIÇÃO DA AGENDA
+  // LISTAGEM
 
   function renderAgenda() {
     const month =
@@ -604,7 +643,13 @@
       const badge = document.createElement("span");
 
       badge.className =
-        `agenda-status ${state.toLowerCase()}`;
+        `agenda-status ${
+          state === "Pago"
+            ? "pago"
+            : state === "Vencido"
+              ? "atrasado"
+              : "pendente"
+        }`;
 
       badge.textContent =
         item.pagoAnteriormente
@@ -622,7 +667,12 @@
       actions.className = "agenda-actions";
 
       if (item.pagoAnteriormente) {
-        // Pagamento histórico: não gera despesa nova.
+        actions.append(
+          button(
+            "Corrigir pagamento",
+            () => corrigirPagamentoAnterior(item)
+          )
+        );
       } else if (state === "Pago") {
         actions.append(
           button(
@@ -635,6 +685,10 @@
           button(
             "Marcar como pago",
             () => pay(item)
+          ),
+          button(
+            "Já estava pago",
+            () => registrarPagamentoAnterior(item)
           ),
           button(
             "Editar",
@@ -761,12 +815,16 @@
     ].forEach(id => {
       byId(id).addEventListener(
         "input",
-        atualizarCalculoParcelas
+        () => {
+          toggleQuantity();
+        }
       );
 
       byId(id).addEventListener(
         "change",
-        atualizarCalculoParcelas
+        () => {
+          toggleQuantity();
+        }
       );
     });
 
