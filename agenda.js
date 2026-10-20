@@ -1,11 +1,10 @@
 
 "use strict";
 
-/* AGENDA FINANCEIRA — VERSÃO 1.3 */
+/* AGENDA FINANCEIRA — VERSÃO 1.4 */
 
 (() => {
   const AGENDA_KEY = "gestao-financeira-agenda-v1";
-
   const byId = id => document.getElementById(id);
 
   const currency = value =>
@@ -89,6 +88,7 @@
 
   let agenda = [];
   let editing = null;
+  let expandedId = null;
 
   // ARMAZENAMENTO
 
@@ -106,7 +106,6 @@
   function load() {
     try {
       const raw = localStorage.getItem(AGENDA_KEY);
-
       if (!raw) return [];
 
       const parsed = JSON.parse(raw);
@@ -137,14 +136,21 @@
     return entries.find(e => e.id === `agenda-${item.id}`);
   }
 
+  function isPaid(item) {
+    return item.pagoAnteriormente === true || !!linkedEntry(item);
+  }
+
   function status(item) {
-    if (item.pagoAnteriormente || linkedEntry(item)) {
-      return "Pago";
-    }
+    if (isPaid(item)) return "Pago";
 
     return item.vencimento < isoToday()
       ? "Vencido"
       : "A vencer";
+  }
+
+  function refreshAll() {
+    renderAgenda();
+    render();
   }
 
   function corrigirPagamentoAnterior(item) {
@@ -152,9 +158,7 @@
 
     if (!confirm(
       `A parcela ${item.parcela}/${item.totalParcelas} está registrada como paga anteriormente.\n\nDeseja retirar essa confirmação de pagamento?`
-    )) {
-      return;
-    }
+    )) return;
 
     const next = agenda.map(x =>
       x.id === item.id
@@ -162,21 +166,15 @@
         : x
     );
 
-    if (save(next)) {
-      renderAgenda();
-    }
+    if (save(next)) refreshAll();
   }
 
   function registrarPagamentoAnterior(item) {
-    if (item.pagoAnteriormente || linkedEntry(item)) {
-      return;
-    }
+    if (isPaid(item)) return;
 
     if (!confirm(
       `Confirmar que a parcela ${item.parcela}/${item.totalParcelas} já foi paga antes do cadastro?\n\nEla será marcada como paga sem criar uma nova despesa.`
-    )) {
-      return;
-    }
+    )) return;
 
     const next = agenda.map(x =>
       x.id === item.id
@@ -184,9 +182,7 @@
         : x
     );
 
-    if (save(next)) {
-      renderAgenda();
-    }
+    if (save(next)) refreshAll();
   }
 
   // FORMULÁRIO
@@ -235,17 +231,15 @@
 
     byId("agenda-valor-label").firstChild.textContent =
       parcelada
-        ? (
-            modo === "total"
-              ? "Valor total da compra (R$) "
-              : "Valor de cada parcela (R$) "
-          )
+        ? modo === "total"
+          ? "Valor total da compra (R$) "
+          : "Valor de cada parcela (R$) "
         : "Valor (R$) ";
 
     atualizarCalculoParcelas();
   }
 
-  // CÁLCULO
+  // CÁLCULO DE PARCELAS
 
   function calcularParcelas(centavos, quantidade, modo) {
     const total =
@@ -257,9 +251,7 @@
       !Number.isSafeInteger(total) ||
       total < 1 ||
       total > 1e14
-    ) {
-      return null;
-    }
+    ) return null;
 
     const base = Math.floor(total / quantidade);
     const resto = total % quantidade;
@@ -279,9 +271,7 @@
     if (
       byId("agenda-tipo").value !== "parcelada" ||
       editing
-    ) {
-      return;
-    }
+    ) return;
 
     const valor = parseValorBR(byId("agenda-valor").value);
     const centavos = roundCents(valor);
@@ -306,7 +296,6 @@
     if (!calculo) {
       byId("agenda-calculo-total").textContent =
         "Informe valores válidos para visualizar o cálculo.";
-
       byId("agenda-calculo-pago").textContent = "";
       byId("agenda-calculo-restante").textContent = "";
       return;
@@ -326,7 +315,7 @@
       `Restante (${quantidade - pagas} parcelas): ${currency((calculo.total - pago) / 100)}`;
   }
 
-  // CADASTRO
+  // CADASTRO E EDIÇÃO
 
   function submit(ev) {
     ev.preventDefault();
@@ -371,14 +360,11 @@
       return;
     }
 
-    // EDITAR UMA PROVISÃO
-
     if (editing) {
       const item = agenda.find(x => x.id === editing);
-
       if (!item) return;
 
-      if (linkedEntry(item) || item.pagoAnteriormente) {
+      if (isPaid(item)) {
         alert("Desfaça ou corrija o pagamento antes de editar esta provisão.");
         return;
       }
@@ -391,9 +377,8 @@
 
       if (save(next)) {
         reset();
-        renderAgenda();
+        refreshAll();
       }
-
       return;
     }
 
@@ -417,18 +402,14 @@
         group,
         descricao,
         categoria,
-
-        // A data informada é da PRIMEIRA parcela.
         vencimento:
           tipo === "unica"
             ? vencimento
             : addMonths(vencimento, i),
-
         centavos: calculo.valores[i],
         parcela: i + 1,
         totalParcelas: quantidade,
         modalidade: tipo,
-
         pagoAnteriormente:
           tipo === "parcelada" && i < pagas
       })
@@ -436,17 +417,15 @@
 
     if (save([...agenda, ...items])) {
       reset();
-      renderAgenda();
+      refreshAll();
       alert("Provisões cadastradas com sucesso.");
     }
   }
 
-  // PAGAR PARCELA
+  // REGISTRAR PAGAMENTO
 
   function pay(item) {
-    if (item.pagoAnteriormente || linkedEntry(item)) {
-      return;
-    }
+    if (isPaid(item)) return;
 
     const data = prompt(
       `Data do pagamento de ${item.descricao} (AAAA-MM-DD):`,
@@ -462,14 +441,12 @@
 
     const entry = {
       id: `agenda-${item.id}`,
-
       descricao:
         `${item.descricao}${
           item.totalParcelas > 1
             ? ` (${item.parcela}/${item.totalParcelas})`
             : ""
         }`,
-
       valor: item.centavos / 100,
       data,
       tipo: "despesa",
@@ -482,8 +459,7 @@
     }
 
     if (persist([...entries, entry])) {
-      render();
-      renderAgenda();
+      refreshAll();
     }
   }
 
@@ -495,24 +471,21 @@
       !confirm(
         `Desfazer pagamento de "${item.descricao}"? O lançamento correspondente será removido.`
       )
-    ) {
-      return;
-    }
+    ) return;
 
     if (
       persist(
         entries.filter(e => e.id !== `agenda-${item.id}`)
       )
     ) {
-      render();
-      renderAgenda();
+      refreshAll();
     }
   }
 
-  // EDITAR
+  // EDITAR PARCELA PENDENTE
 
   function edit(item) {
-    if (item.pagoAnteriormente || linkedEntry(item)) {
+    if (isPaid(item)) {
       alert("Corrija ou desfaça o pagamento antes de editar.");
       return;
     }
@@ -547,29 +520,80 @@
     });
   }
 
-  // EXCLUIR
+  // IDENTIFICAR PARCELAS DA MESMA PROVISÃO
 
-  function remove(item) {
-    if (item.pagoAnteriormente || linkedEntry(item)) {
-      alert("Corrija ou desfaça o pagamento antes de excluir.");
-      return;
-    }
-
+  function sameSeries(item) {
     if (
-      !confirm(
-        `Excluir provisão "${item.descricao}" de ${formatDate(item.vencimento)}?`
-      )
+      typeof item.group !== "string" ||
+      !item.group
     ) {
+      return [item];
+    }
+
+    return agenda.filter(x => x.group === item.group);
+  }
+
+  // EXCLUSÃO SEGURA
+
+  function remove(item, scope = "single") {
+    const series = sameSeries(item);
+
+    let candidates;
+
+    if (scope === "all") {
+      candidates = series;
+    } else if (scope === "future") {
+      candidates = series.filter(
+        x => x.parcela >= item.parcela
+      );
+    } else {
+      candidates = [item];
+    }
+
+    // Parcelas pagas nunca são excluídas nesta operação.
+    const removable = candidates.filter(x => !isPaid(x));
+    const protectedCount = candidates.length - removable.length;
+
+    if (!removable.length) {
+      alert(
+        "Não existem parcelas pendentes para excluir. Os pagamentos realizados estão protegidos."
+      );
       return;
     }
 
-    if (save(agenda.filter(x => x.id !== item.id))) {
-      if (editing === item.id) reset();
-      renderAgenda();
+    const description =
+      scope === "all"
+        ? "todas as parcelas pendentes desta provisão"
+        : scope === "future"
+          ? "esta parcela e todas as futuras pendentes"
+          : "somente esta parcela";
+
+    const message =
+      `Deseja excluir ${description}?\n\n` +
+      `Provisão: ${item.descricao}\n` +
+      `Parcelas que serão excluídas: ${removable.length}\n` +
+      `Parcelas pagas preservadas: ${protectedCount}\n\n` +
+      "Os lançamentos financeiros já realizados não serão apagados.\n\n" +
+      "Esta ação não pode ser desfeita sem um backup.";
+
+    if (!confirm(message)) return;
+
+    const ids = new Set(removable.map(x => x.id));
+
+    const next = agenda.filter(x => !ids.has(x.id));
+
+    if (save(next)) {
+      if (editing && ids.has(editing)) reset();
+
+      if (expandedId && ids.has(expandedId)) {
+        expandedId = null;
+      }
+
+      refreshAll();
     }
   }
 
-  // BOTÕES
+  // CRIAÇÃO DE BOTÕES
 
   function button(label, action, className = "outline") {
     const el = document.createElement("button");
@@ -582,7 +606,7 @@
     return el;
   }
 
-  // LISTAGEM
+  // LISTAGEM E CARTÕES EXPANSÍVEIS
 
   function renderAgenda() {
     const month =
@@ -595,11 +619,11 @@
       );
 
     const paid = list
-      .filter(x => status(x) === "Pago")
+      .filter(x => isPaid(x))
       .reduce((sum, x) => sum + x.centavos, 0);
 
     const pending = list
-      .filter(x => status(x) !== "Pago")
+      .filter(x => !isPaid(x))
       .reduce((sum, x) => sum + x.centavos, 0);
 
     byId("agenda-previsto").textContent =
@@ -624,11 +648,32 @@
 
     for (const item of list) {
       const state = status(item);
+      const expanded = expandedId === item.id;
 
       const card = document.createElement("article");
       card.className = "agenda-item";
 
-      const top = document.createElement("div");
+      const toggle = document.createElement("button");
+      toggle.type = "button";
+      toggle.className = "agenda-item-toggle";
+
+      toggle.style.cssText =
+        "display:block;width:100%;padding:0;" +
+        "border:0;background:transparent;" +
+        "color:inherit;text-align:left;" +
+        "font:inherit;cursor:pointer";
+
+      toggle.setAttribute(
+        "aria-expanded",
+        String(expanded)
+      );
+
+      toggle.setAttribute(
+        "aria-label",
+        `Detalhes de ${item.descricao}, parcela ${item.parcela} de ${item.totalParcelas}`
+      );
+
+      const top = document.createElement("span");
       top.className = "agenda-item-top";
 
       const name = document.createElement("strong");
@@ -658,56 +703,126 @@
 
       top.append(name, badge);
 
-      const detail = document.createElement("p");
+      const detail = document.createElement("span");
+
+      detail.style.cssText =
+        "display:block;margin:10px 0;font-size:14px";
 
       detail.textContent =
         `Vence: ${formatDate(item.vencimento)} · ${item.categoria} · ${currency(item.centavos / 100)}`;
 
-      const actions = document.createElement("div");
-      actions.className = "agenda-actions";
+      const hint = document.createElement("span");
 
-      if (item.pagoAnteriormente) {
-        actions.append(
-          button(
-            "Corrigir pagamento",
-            () => corrigirPagamentoAnterior(item)
-          )
-        );
-      } else if (state === "Pago") {
-        actions.append(
-          button(
-            "Desfazer pagamento",
-            () => undo(item)
-          )
-        );
-      } else {
-        actions.append(
-          button(
-            "Marcar como pago",
-            () => pay(item)
-          ),
-          button(
-            "Já estava pago",
-            () => registrarPagamentoAnterior(item)
-          ),
-          button(
-            "Editar",
-            () => edit(item)
-          ),
-          button(
-            "Excluir",
-            () => remove(item),
-            "danger-btn"
-          )
-        );
+      hint.style.cssText =
+        "display:block;margin-top:8px;" +
+        "font-size:12px;color:#123456";
+
+      hint.textContent = expanded
+        ? "▲ Ocultar detalhes"
+        : "▼ Toque para ver detalhes";
+
+      toggle.append(top, detail, hint);
+
+      toggle.addEventListener("click", () => {
+        expandedId = expanded ? null : item.id;
+        renderAgenda();
+      });
+
+      card.append(toggle);
+
+      if (expanded) {
+        const panel = document.createElement("div");
+
+        panel.className = "agenda-item-details";
+
+        panel.style.cssText =
+          "border-top:1px solid #dce4ed;" +
+          "margin-top:12px;padding-top:12px";
+
+        const series = sameSeries(item);
+
+        const paidCount = series.filter(isPaid).length;
+
+        const info = document.createElement("p");
+
+        const modalidade =
+          item.modalidade === "parcelada"
+            ? "Compra parcelada"
+            : item.modalidade === "recorrente"
+              ? "Conta recorrente"
+              : "Conta única";
+
+        info.textContent =
+          `Modalidade: ${modalidade} · ` +
+          `Parcela: ${item.parcela}/${item.totalParcelas} · ` +
+          `Parcelas registradas: ${series.length} · ` +
+          `Pagas: ${paidCount}`;
+
+        panel.append(info);
+
+        const actions = document.createElement("div");
+        actions.className = "agenda-actions";
+
+        if (item.pagoAnteriormente) {
+          actions.append(
+            button(
+              "Corrigir pagamento",
+              () => corrigirPagamentoAnterior(item)
+            )
+          );
+        } else if (state === "Pago") {
+          actions.append(
+            button(
+              "Desfazer pagamento",
+              () => undo(item)
+            )
+          );
+        } else {
+          actions.append(
+            button(
+              "Marcar como pago",
+              () => pay(item)
+            ),
+            button(
+              "Já estava pago",
+              () => registrarPagamentoAnterior(item)
+            ),
+            button(
+              "Editar esta parcela",
+              () => edit(item)
+            ),
+            button(
+              "Excluir somente esta parcela",
+              () => remove(item, "single"),
+              "danger-btn"
+            )
+          );
+        }
+
+        if (series.length > 1) {
+          actions.append(
+            button(
+              "Excluir esta e as futuras pendentes",
+              () => remove(item, "future"),
+              "danger-btn"
+            ),
+            button(
+              "Excluir toda a provisão pendente",
+              () => remove(item, "all"),
+              "danger-btn"
+            )
+          );
+        }
+
+        panel.append(actions);
+        card.append(panel);
       }
 
-      card.append(top, detail, actions);
       root.append(card);
     }
   }
 
-  // BACKUP
+  // BACKUP DA AGENDA
 
   function backupAgenda() {
     const payload = {
@@ -762,17 +877,14 @@
           throw Error("Arquivo inválido");
         }
 
-        if (
-          !confirm(
-            "Substituir todas as provisões atuais pelas provisões do backup? As movimentações não serão alteradas."
-          )
-        ) {
-          return;
-        }
+        if (!confirm(
+          "Substituir todas as provisões atuais pelas provisões do backup? As movimentações não serão alteradas."
+        )) return;
 
         if (save(data.items)) {
+          expandedId = null;
           reset();
-          renderAgenda();
+          refreshAll();
           alert("Agenda restaurada.");
         }
       } catch {
@@ -815,16 +927,12 @@
     ].forEach(id => {
       byId(id).addEventListener(
         "input",
-        () => {
-          toggleQuantity();
-        }
+        toggleQuantity
       );
 
       byId(id).addEventListener(
         "change",
-        () => {
-          toggleQuantity();
-        }
+        toggleQuantity
       );
     });
 
@@ -835,7 +943,10 @@
 
     byId("agenda-mes").addEventListener(
       "change",
-      renderAgenda
+      () => {
+        expandedId = null;
+        renderAgenda();
+      }
     );
 
     byId("agenda-backup").addEventListener(
@@ -850,6 +961,7 @@
 
     byId("mes").addEventListener("change", () => {
       byId("agenda-mes").value = byId("mes").value;
+      expandedId = null;
       renderAgenda();
     });
 
