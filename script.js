@@ -1321,24 +1321,54 @@ function init() {
     event => restore(event.target.files[0])
   );
 
-  $("clear").addEventListener(
-    "click",
-    () => {
-      if (
-        confirm(
-          "ATENÇÃO: apagar TODOS os lançamentos? Faça backup antes."
-        ) &&
-        confirm(
-          "Confirma a exclusão definitiva dos dados locais?"
-        )
-      ) {
-        if (persist([])) {
-          resetForm();
-          render();
-        }
-      }
+  // ZERAR TODOS OS DADOS DO SISTEMA
+
+  $("clear").addEventListener("click", () => {
+    const primeiraConfirmacao = confirm(
+      "ATENÇÃO!\n\n" +
+      "Você está prestes a zerar todo o Gestão Financeira.\n\n" +
+      "Serão apagados:\n" +
+      "• Receitas e despesas\n" +
+      "• Pagamentos registrados\n" +
+      "• Todas as contas e parcelas da Agenda Financeira\n" +
+      "• Histórico financeiro e previsões\n\n" +
+      "Não é obrigatório fazer backup.\n\n" +
+      "Deseja continuar?"
+    );
+
+    if (!primeiraConfirmacao) return;
+
+    const segundaConfirmacao = confirm(
+      "CONFIRMAÇÃO FINAL\n\n" +
+      "Todos os registros financeiros e provisões " +
+      "deste navegador serão excluídos definitivamente.\n\n" +
+      "O programa e os arquivos do GitHub " +
+      "não serão alterados.\n\n" +
+      "Tem certeza de que deseja ZERAR TUDO?"
+    );
+
+    if (!segundaConfirmacao) return;
+
+    try {
+      localStorage.removeItem(KEY);
+      localStorage.removeItem(AGENDA_KEY);
+      localStorage.removeItem(OLD_KEY);
+
+      alert(
+        "Todos os registros foram apagados com sucesso!\n\n" +
+        "O sistema será reiniciado com os valores zerados."
+      );
+
+      window.location.reload();
+    } catch (erro) {
+      console.error("Erro ao zerar os dados:", erro);
+
+      alert(
+        "Não foi possível concluir a limpeza. " +
+        "Verifique o armazenamento do navegador."
+      );
     }
-  );
+  });
 
   $("calc-toggle").addEventListener(
     "click",
