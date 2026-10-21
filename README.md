@@ -1,93 +1,130 @@
-💰 Sistema de Gestão Financeira
 
-Projeto de desenvolvimento web | HTML, CSS e JavaScript
+# Gestão Financeira
 
-📌 Sobre o projeto
+Sistema de controle financeiro desenvolvido com HTML, CSS e JavaScript.
 
-O Sistema de Gestão Financeira é uma aplicação web desenvolvida para facilitar o acompanhamento de receitas, despesas e movimentações financeiras.
+## Sobre o projeto
 
-O projeto começou como uma ferramenta simples de controle de entradas e saídas e está evoluindo gradualmente para uma solução mais completa, destinada a pessoas físicas, profissionais autônomos e pequenos negócios.
+O Gestão Financeira é um projeto pessoal de desenvolvimento web criado para organizar receitas, despesas, pagamentos e compromissos financeiros.
 
-Além de oferecer uma ferramenta útil no cotidiano, o projeto tem como objetivo aplicar conhecimentos de desenvolvimento de software, lógica de programação, organização de dados e versionamento de código.
+Foi desenvolvido como ferramenta de aprendizado e portfólio profissional, com foco em pessoas físicas, autônomos, MEIs e pequenos negócios.
 
-🛠️ Tecnologias utilizadas
+## Acessar o aplicativo
 
-- HTML5: estrutura e organização dos elementos da interface.
-- CSS3: aparência, cores, espaçamento e adaptação das telas.
-- JavaScript: cálculos, validações, eventos e funcionamento das funcionalidades.
-- localStorage: armazenamento local das informações no navegador.
-- Git e GitHub: controle de versões e histórico do desenvolvimento.
-- GitHub Pages: publicação da aplicação na internet.
+https://lucas-sousa-dev.github.io/Controle-financeiro-/
 
-💻 Funcionalidades da versão atual
+## Tecnologias utilizadas
+
+- HTML5: estrutura da aplicação.
+- CSS3: aparência e adaptação às telas.
+- JavaScript: cálculos, funções e interatividade.
+- localStorage: armazenamento local dos dados.
+- JSON: backup e restauração.
+- CSV: exportação de movimentações.
+- Git e GitHub: versionamento do código.
+- GitHub Pages: publicação do sistema.
+- PWA: instalação como aplicativo.
+- Service Worker: armazenamento em cache para suporte offline.
+
+## Funcionalidades implementadas
+
+### Controle financeiro
 
 - Cadastro de receitas e despesas.
-- Cálculo do saldo financeiro.
-- Histórico de movimentações.
-- Organização das informações financeiras.
-- Armazenamento local no navegador.
+- Edição e exclusão de movimentações.
+- Resumo mensal de receitas e despesas.
+- Resultado financeiro e saldo acumulado.
+- Histórico mensal.
+- Pesquisa de movimentações.
+- Resumo por categoria.
+- Calculadora integrada.
+- Exportação CSV.
+- Impressão e PDF pelo navegador.
 
-Outras funcionalidades serão detalhadas nesta documentação após a revisão completa do código e dos testes.
+### Agenda Financeira
 
-📅 Funcionalidades planejadas
-
-Agenda Financeira
-
-- Cadastro de provisões e contas futuras.
-- Compras parceladas com vencimentos automáticos.
+- Cadastro de contas únicas.
+- Compras parceladas.
 - Contas recorrentes.
-- Calendário de pagamentos.
-- Identificação de contas pendentes, pagas e atrasadas.
-- Integração das provisões com o controle financeiro.
+- Cálculo de parcelas e valores restantes.
+- Registro de parcelas já pagas.
+- Organização por mês e vencimento.
+- Registro e reversão de pagamentos.
+- Edição e exclusão de provisões.
+- Previsão de pagamentos do próximo mês.
 
-Evolução para aplicativo
+### Armazenamento e backup
 
-- Instalação no celular como PWA.
-- Lembretes e notificações.
-- Backup e restauração.
-- Contas individuais com autenticação.
-- Sincronização de dados.
-- Compartilhamento opcional mediante autorização.
+- Armazenamento local no navegador.
+- Backup e restauração das movimentações em JSON.
+- Backup e restauração da Agenda Financeira em JSON.
 
-Essas funcionalidades fazem parte do planejamento e não devem ser consideradas disponíveis até serem implementadas e testadas.
+### Aplicativo PWA
 
-📁 Estrutura principal
+- Instalação no Android.
+- Ícone personalizado GF.
+- Abertura sem barra do navegador.
+- Manifesto de instalação.
+- Service Worker para cache de arquivos.
 
-- "index.html" — estrutura da aplicação.
-- "style.css" — identidade visual e estilos.
-- "script.js" — lógica de funcionamento.
-- "README.md" — apresentação e documentação geral.
+A instalação no Android foi testada com sucesso. O funcionamento totalmente offline ainda precisa ser testado.
 
-🔒 Armazenamento e segurança
+## Estrutura do projeto
 
-Na arquitetura inicial, os registros financeiros são armazenados localmente no navegador utilizado.
+- index.html: estrutura principal.
+- style.css: aparência geral.
+- agenda.css: aparência da agenda.
+- script.js: movimentações, saldos, histórico e ferramentas.
+- agenda.js: contas, parcelas e pagamentos.
+- manifest.webmanifest: configuração do aplicativo.
+- service-worker.js: cache e suporte offline.
+- icon-192.png: ícone do aplicativo.
+- icon-512.png: ícone do aplicativo.
+- README.md: documentação geral.
+- CHANGELOG.md: histórico de atualizações.
 
-O GitHub hospeda os arquivos do sistema, mas não funciona como banco de dados das movimentações dos usuários.
+## Segurança dos dados
 
-A autenticação, o armazenamento em nuvem e o compartilhamento seguro fazem parte das próximas etapas de desenvolvimento.
+Os registros ficam armazenados localmente.
 
-📚 Aprendizados do projeto
+O GitHub Pages hospeda o código do sistema, mas não armazena os dados financeiros dos usuários.
 
-O desenvolvimento permite praticar:
+Não existe sincronização automática entre navegadores ou dispositivos.
 
-- Estruturação de páginas web.
-- Manipulação de elementos HTML com JavaScript.
-- Programação de eventos e funções.
-- Operações matemáticas e tratamento de valores.
-- Persistência de informações.
-- Organização e manutenção de código.
-- Controle de versões e documentação técnica.
+É importante realizar backups regularmente, pois a limpeza dos dados do navegador ou do aplicativo pode apagar os registros.
 
-🚀 Evolução contínua
+O sistema é uma ferramenta gerencial e não substitui serviços contábeis ou fiscais.
 
-O sistema será aprimorado por etapas, preservando as funcionalidades existentes e documentando as alterações realizadas.
+## Aprendizado
 
-As próximas versões terão foco na Agenda Financeira, na experiência de uso pelo celular e na evolução da arquitetura da aplicação.
+Este projeto permite estudar:
 
-👨‍💻 Desenvolvedor
+- HTML e CSS.
+- Lógica de programação.
+- Funções e eventos JavaScript.
+- Manipulação do DOM.
+- Arrays e objetos.
+- Formulários e validações.
+- Cálculos e tratamento de datas.
+- Armazenamento local.
+- Exportação e importação de dados.
+- Desenvolvimento PWA.
+- Git, GitHub e documentação.
+
+## Próximas melhorias
+
+- Testar o funcionamento offline.
+- Aperfeiçoar relatórios financeiros.
+- Melhorar os testes do sistema.
+- Criar documentação técnica das funções.
+- Avaliar futuras opções de sincronização e autenticação.
+- Estudar notificações de vencimentos.
+
+## Desenvolvedor
 
 Lucas Sousa
 
-Projeto pessoal de desenvolvimento e aprendizado prático em tecnologia.
+Projeto pessoal de desenvolvimento e aprendizado em tecnologia.
 
-"Repositório no GitHub" (https://github.com/lucas-sousa-dev/Controle-financeiro-)
+Repositório:
+https://github.com/lucas-sousa-dev/Controle-financeiro-/
