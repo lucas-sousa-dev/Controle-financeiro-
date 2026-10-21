@@ -1,59 +1,115 @@
-Histórico de Atualizações — Sistema de Gestão Financeira
 
-Este documento registra a evolução do Sistema de Gestão Financeira, suas funcionalidades, melhorias e futuras implementações.
+# CHANGELOG - Gestão Financeira
 
-[Não lançada] — Próxima atualização
+Histórico das principais etapas de desenvolvimento do sistema.
 
-Planejado
+As versões abaixo organizam os marcos do projeto. As datas exatas de cada alteração podem ser consultadas nos commits do GitHub.
 
-- Implementar Agenda Financeira.
-- Cadastrar provisões de despesas futuras.
-- Gerar parcelas automaticamente.
-- Cadastrar contas mensais recorrentes.
-- Identificar contas pagas, pendentes e atrasadas.
-- Visualizar vencimentos por data e mês.
-- Integrar pagamentos realizados ao controle de movimentações.
+## Versão 1.3 - Outubro de 2026
 
-[Versão inicial] — Sistema de controle financeiro
+### Aplicativo PWA
 
-Implementado
+Implementado:
 
-- Estrutura da aplicação em HTML.
-- Identidade visual em CSS.
-- Lógica financeira em JavaScript.
+- Manifesto do aplicativo.
+- Service Worker.
+- Ícones personalizados GF.
+- Configuração de instalação no Android.
+- Abertura em janela independente.
+- Cache de arquivos essenciais.
+
+Testado:
+
+- Instalação pelo Chrome no Android.
+- Exibição correta do ícone GF.
+- Abertura sem barra de endereço.
+- Funcionamento das movimentações e da agenda.
+- Acesso aos dados anteriormente salvos no Chrome.
+
+Pendente:
+
+- Teste completo de funcionamento offline.
+- Validação das atualizações do cache.
+
+## Versão 1.2 - Outubro de 2026
+
+### Agenda Financeira
+
+Implementado:
+
+- Cadastro de provisões.
+- Contas únicas.
+- Compras parceladas.
+- Contas recorrentes.
+- Geração de vencimentos.
+- Cálculo de parcelas.
+- Informação de valor total ou por parcela.
+- Registro de parcelas já pagas.
+- Resumo de valores previstos, pagos e pendentes.
+- Registro e reversão de pagamentos.
+- Edição e exclusão de provisões.
+- Previsão de pagamentos do próximo mês.
+- Backup e restauração da agenda.
+
+## Versão 1.1 - Outubro de 2026
+
+### Controle financeiro
+
+Implementado:
+
 - Cadastro de receitas e despesas.
-- Cálculo e exibição do saldo.
-- Histórico de movimentações.
-- Armazenamento local das informações.
-- Publicação do projeto pelo GitHub Pages.
+- Edição e exclusão de movimentações.
+- Histórico mensal.
+- Saldo acumulado.
+- Resumo por categorias.
+- Pesquisa de movimentações.
+- Calculadora integrada.
+- Exportação CSV.
+- Impressão e PDF pelo navegador.
+- Backup e restauração em JSON.
 
-Manutenção
+Melhorias:
 
-- Revisão da estrutura dos arquivos.
-- Ajustes no funcionamento do registro de movimentações.
-- Testes de funcionamento no navegador.
+- Organização da interface.
+- Adaptação para dispositivos móveis.
+- Validação de formulários.
+- Persistência dos registros financeiros.
 
-Documentação
+## Versão 1.0 - Versão inicial
 
-- Atualização do README com apresentação do projeto.
-- Registro das tecnologias utilizadas.
-- Organização das funcionalidades atuais e planejadas.
+### Estrutura do sistema
 
-Próximas etapas
+Implementado:
 
-1. Preservar uma versão estável do sistema.
-2. Desenvolver e testar a Agenda Financeira.
-3. Criar manual de utilização.
-4. Preparar instalação como aplicativo PWA.
-5. Estudar autenticação, sincronização e notificações.
+- Estrutura HTML.
+- Identidade visual CSS.
+- Programação JavaScript.
+- Cadastro básico de movimentações.
+- Cálculo de saldo.
+- Armazenamento local.
+- Publicação pelo GitHub Pages.
+- Versionamento pelo GitHub.
 
-Observações
+## Próximas etapas
 
-- O histórico de commits do GitHub contém os registros técnicos das alterações.
-- Este documento apresenta um resumo organizado da evolução do projeto.
-- As datas e os números das versões serão acrescentados após a conferência dos commits.
-- Funcionalidades planejadas não devem ser apresentadas como implementadas.
+- Testar o PWA sem internet.
+- Aperfeiçoar relatórios.
+- Criar manual técnico de estudos.
+- Documentar as funções JavaScript.
+- Ampliar os testes.
+- Estudar futuras funcionalidades de sincronização e notificações.
 
-Desenvolvedor: Lucas Sousa
+## Observações
 
-Repositório: https://github.com/lucas-sousa-dev/Controle-financeiro-
+- Os registros financeiros são armazenados localmente.
+- Não existe banco de dados remoto nesta versão.
+- O sistema não possui autenticação.
+- Os backups da agenda e das movimentações são separados.
+- O histórico de commits do GitHub registra as alterações técnicas.
+
+## Desenvolvedor
+
+Lucas Sousa
+
+Repositório:
+https://github.com/lucas-sousa-dev/Controle-financeiro-/
