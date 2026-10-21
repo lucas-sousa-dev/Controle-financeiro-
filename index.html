@@ -4,7 +4,20 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#123456">
+  <meta name="application-name" content="Gestão Financeira">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="description" content="Controle de receitas, despesas, parcelas e pagamentos.">
+
   <title>Gestão Financeira | Painel</title>
+
+  <!-- CONFIGURAÇÃO DO APLICATIVO PWA -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
+
+  <!-- ESTILOS -->
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="agenda.css">
 </head>
@@ -478,7 +491,32 @@
     </p>
   </footer>
 
+  <!-- SISTEMA FINANCEIRO -->
   <script src="script.js?v=2"></script>
   <script src="agenda.js"></script>
+
+  <!-- REGISTRO DO SERVICE WORKER -->
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker
+          .register("./service-worker.js", {
+            scope: "./"
+          })
+          .then(registration => {
+            console.log(
+              "Gestão Financeira PWA registrado:",
+              registration.scope
+            );
+          })
+          .catch(error => {
+            console.error(
+              "Erro ao registrar PWA:",
+              error
+            );
+          });
+      });
+    }
+  </script>
 </body>
 </html>
