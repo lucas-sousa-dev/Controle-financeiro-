@@ -20,6 +20,17 @@
   <!-- ESTILOS -->
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="agenda.css">
+<style>
+/* Navegação compacta por abas */
+.finance-tabs{display:flex;gap:8px;overflow-x:auto;position:sticky;top:0;z-index:20;background:var(--bg,#f5f7fa);padding:12px 0;scrollbar-width:thin;overscroll-behavior-x:contain}
+.finance-tab{white-space:nowrap;flex:0 0 auto;border:1px solid #cbd5e1;background:#fff;color:#243447;border-radius:12px;padding:11px 15px;font-weight:700;cursor:pointer}
+.finance-tab[aria-selected="true"]{background:#123456;color:white;border-color:#123456}
+.finance-panel[hidden]{display:none!important}
+.finance-panel>.card,.finance-panel>.layout{margin-top:14px}
+.finance-panel{min-height:180px}
+@media(max-width:640px){.finance-tabs{margin-inline:-12px;padding-inline:12px}.finance-tab{padding:10px 12px;font-size:14px}.finance-panel .layout{display:block}.finance-panel .layout>.card{margin-bottom:14px}}
+@media print{.finance-tabs{display:none}.finance-panel[hidden]{display:block!important}}
+</style>
 </head>
 <body>
   <header>
@@ -495,6 +506,54 @@
   <script src="script.js?v=2"></script>
   <script src="agenda.js"></script>
 
+<script>
+(function(){
+function setupFinanceTabs(){
+ const main=document.querySelector('main.wrap');
+ if(!main||document.getElementById('finance-tabs'))return;
+ const toolbar=main.querySelector('.toolbar');
+ const stats=main.querySelector('.stats');
+ const forecast=document.getElementById('previsao-proximo-mes');
+ const agenda=document.getElementById('agenda-financeira');
+ const form=document.getElementById('formulario')?.closest('section.card');
+ const category=document.getElementById('categorias-resumo')?.closest('section.card');
+ const layout=form?.parentElement;
+ const history=document.getElementById('historico')?.closest('section.card');
+ const entries=document.getElementById('lista-movimentacoes')?.closest('section.card');
+ const backup=document.getElementById('backup')?.closest('section.card');
+ const groups=[
+  ['geral','📊 Visão geral',[stats]],
+  ['movimentos','➕ Movimentações',[form,entries]],
+  ['provisoes','📅 Provisões',[agenda]],
+  ['previsoes','🔮 Previsões',[forecast]],
+  ['historico','🗓️ Histórico',[history]],
+  ['relatorios','📈 Relatórios',[category]],
+  ['config','⚙️ Configurações',[backup]]
+ ];
+ if(layout&&form&&category){layout.remove();}
+ const tabs=document.createElement('nav');tabs.id='finance-tabs';tabs.className='finance-tabs';tabs.setAttribute('aria-label','Seções financeiras');tabs.setAttribute('role','tablist');
+ toolbar.after(tabs);
+ const panels=new Map(),buttons=new Map();
+ groups.forEach(([id,label,nodes])=>{
+  const button=document.createElement('button');button.type='button';button.className='finance-tab';button.id='tab-'+id;button.textContent=label;button.setAttribute('role','tab');button.setAttribute('aria-controls','panel-'+id);
+  const panel=document.createElement('div');panel.id='panel-'+id;panel.className='finance-panel';panel.setAttribute('role','tabpanel');panel.setAttribute('aria-labelledby',button.id);
+  nodes.filter(Boolean).forEach(node=>panel.appendChild(node));
+  tabs.appendChild(button);main.insertBefore(panel,tabs.nextSibling);panels.set(id,panel);buttons.set(id,button);
+  button.addEventListener('click',()=>activate(id,true));
+ });
+ function activate(id,scroll){
+  if(!panels.has(id))id='geral';
+  panels.forEach((panel,key)=>{const active=key===id;panel.hidden=!active;buttons.get(key).setAttribute('aria-selected',String(active));buttons.get(key).tabIndex=active?0:-1;});
+  try{sessionStorage.setItem('finance-tab',id)}catch(e){}
+  if(scroll)window.scrollTo({top:0,behavior:'smooth'});
+ }
+ tabs.addEventListener('keydown',e=>{if(!['ArrowLeft','ArrowRight'].includes(e.key))return;e.preventDefault();const keys=[...buttons.keys()];const current=keys.findIndex(k=>buttons.get(k).getAttribute('aria-selected')==='true');const next=keys[(current+(e.key==='ArrowRight'?1:-1)+keys.length)%keys.length];activate(next,false);buttons.get(next).focus();});
+ let saved='geral';try{saved=sessionStorage.getItem('finance-tab')||'geral'}catch(e){}
+ activate(saved,false);
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setupFinanceTabs);else setupFinanceTabs();
+})();
+</script>
   <!-- REGISTRO DO SERVICE WORKER -->
   <script>
     if ("serviceWorker" in navigator) {
